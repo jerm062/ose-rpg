@@ -1,3 +1,3 @@
-// [dm_map_editor.js content — GM interface with single input and menus]
+// placeholder for dm_map_editor.js - already working version from canvas
 const socket = io();
 ...
