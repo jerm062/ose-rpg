@@ -110,6 +110,7 @@ function showDataMenu() {
     '2. Edit map\n' +
     '3. Edit lore\n' +
     '4. Edit log\n' +
+    '5. Save all\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -375,6 +376,11 @@ function handleInput(text) {
       case '4':
         display.textContent = 'Enter full log text:';
         mode = 'editLog';
+        break;
+      case '5':
+        socket.emit('saveAll');
+        display.textContent = 'Data saved.';
+        mode = 'help';
         break;
       case '0':
         showMainMenu();
