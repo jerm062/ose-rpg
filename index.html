@@ -8,29 +8,17 @@
   <style>
     body { font-family: monospace; padding: 2rem; max-width: 600px; margin: 0 auto; font-size: 18px; line-height: 1.4; background: var(--bg); color: var(--fg); }
     a { color: var(--link); display: block; margin: 1rem 0; }
-    #themeSelect { margin-bottom: 1rem; }
   </style>
 </head>
 <body>
   <h1>OSE RPG - Welcome</h1>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'public/theme-classic.css';
+  </script>
   <p><a href="/player.html">▶ Join as Player</a></p>
   <p><a href="/dm.html">🎲 Launch GM Tools</a></p>
   <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `public/theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `public/theme-${t}.css`;
-    };
+    // theme fixed to classic
   </script>
 </body>
 </html>

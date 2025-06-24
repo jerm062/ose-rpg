@@ -19,7 +19,14 @@
     canvas {
       border: 1px solid var(--border);
     }
-    #tilePalette { margin-top: 0.5rem; }
+    #tilePalette {
+      position: fixed;
+      right: 0.5rem;
+      top: 0.5rem;
+      bottom: 0.5rem;
+      width: 60px;
+      overflow-y: auto;
+    }
     .tileBtn { border: 1px solid var(--border); cursor: pointer; margin-right: 2px; }
     .tileSel { outline: 2px solid red; }
     .char { color: deepskyblue; }
@@ -31,17 +38,11 @@
     .gmchar { color: lightgreen; }
     .gmevent { color: orange; }
     .gmstory { color: plum; }
-    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
   <h1>OSE RPG GM Interface</h1>
+  <p><a href="index.html">&#x2B05; Back</a></p>
   <pre id="menuDisplay"></pre>
   <input id="gmInput" autocomplete="off" />
   <pre id="readyDisplay"></pre>
@@ -57,16 +58,5 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="tiles.js"></script>
   <script src="gm_menu.js"></script>
-  <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
-  </script>
-</body>
+  </body>
 </html>
