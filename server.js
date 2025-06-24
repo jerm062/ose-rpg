@@ -16,10 +16,19 @@ if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
 }
 
-const CHAR_FILE = path.join(DATA_DIR, 'player_data.json');
-const LOG_FILE = path.join(DATA_DIR, 'campaign_log.txt');
-const MAP_FILE = path.join(DATA_DIR, 'map_data.json');
-const LORE_FILE = path.join(DATA_DIR, 'lore.json');
+// Sub directories for different types of campaign data
+const CHAR_DIR = path.join(DATA_DIR, 'characters');
+const MAP_DIR = path.join(DATA_DIR, 'maps');
+const CHAT_DIR = path.join(DATA_DIR, 'chat');
+const LORE_DIR = path.join(DATA_DIR, 'lore');
+[CHAR_DIR, MAP_DIR, CHAT_DIR, LORE_DIR].forEach((dir) => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
+const CHAR_FILE = path.join(CHAR_DIR, 'player_data.json');
+const LOG_FILE = path.join(CHAT_DIR, 'campaign_log.txt');
+const MAP_FILE = path.join(MAP_DIR, 'map_data.json');
+const LORE_FILE = path.join(LORE_DIR, 'lore.json');
 
 let campaignLog = [];
 let maps = {};
