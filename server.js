@@ -13,6 +13,9 @@ const CHAR_FILE = path.join(__dirname, 'player_data.json');
 const LOG_FILE = path.join(__dirname, 'campaign_log.txt');
 const MAP_FILE = path.join(__dirname, 'map_data.json');
 
+// Legacy character codes for map tiles
+const TILE_CHARS = ['.', '#', 'T', 'H', 'D'];
+
 let campaignLog = [];
 let mapData = [];
 
@@ -35,6 +38,12 @@ if (fs.existsSync(LOG_FILE)) {
 if (fs.existsSync(MAP_FILE)) {
   try {
     mapData = JSON.parse(fs.readFileSync(MAP_FILE));
+    // convert legacy character map to numeric indices
+    mapData = mapData.map((row) =>
+      row.map((c) =>
+        typeof c === 'number' ? c : Math.max(0, TILE_CHARS.indexOf(c))
+      )
+    );
   } catch (err) {
     console.error('Error reading map file:', err);
   }

@@ -17,7 +17,7 @@
       color: var(--fg);
     }
     a { color: var(--link); }
-    pre { white-space: pre-wrap; }
+    canvas { border: 1px solid var(--border); }
     #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
@@ -28,7 +28,7 @@
     <option value="bw">Black & White</option>
     <option value="modern">Modern</option>
   </select>
-  <pre id="mapDisplay">Loading...</pre>
+  <canvas id="mapCanvas" width="600" height="600"></canvas>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -42,11 +42,54 @@
       localStorage.setItem('theme', t);
       document.getElementById('themeStylesheet').href = `theme-${t}.css`;
     };
-    const display = document.getElementById('mapDisplay');
+
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const cellSize = 30;
+
+    const tileImage = new Image();
+    tileImage.src = 'colored_transparent.png';
+    const tileSize = 36;
+    const tileSpacing = 1;
+    const tileMargin = 1;
+    let tileCols = 0;
+    let tileRows = 0;
+    let tileCount = 0;
+
+    tileImage.onload = () => {
+      tileCols = Math.floor((tileImage.width - tileMargin) / (tileSize + tileSpacing));
+      tileRows = Math.floor((tileImage.height - tileMargin) / (tileSize + tileSpacing));
+      tileCount = tileCols * tileRows;
+      if (window.latestMap) drawMap(window.latestMap);
+    };
+
+    function drawTile(targetCtx, index, x = 0, y = 0) {
+      if (!tileCount) return;
+      const col = index % tileCols;
+      const row = Math.floor(index / tileCols);
+      const sx = tileMargin + col * (tileSize + tileSpacing);
+      const sy = tileMargin + row * (tileSize + tileSpacing);
+      targetCtx.drawImage(tileImage, sx, sy, tileSize, tileSize, x, y, cellSize, cellSize);
+      targetCtx.strokeStyle = '#888';
+      targetCtx.strokeRect(x, y, cellSize, cellSize);
+    }
+
+    function drawMap(data) {
+      canvas.width = data[0].length * cellSize;
+      canvas.height = data.length * cellSize;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < data.length; y++) {
+        for (let x = 0; x < data[y].length; x++) {
+          drawTile(ctx, data[y][x], x * cellSize, y * cellSize);
+        }
+      }
+    }
+
     const socket = io();
     socket.emit('getMap');
     socket.on('mapData', (data) => {
-      display.textContent = data.map(row => row.join('')).join('\n');
+      window.latestMap = data;
+      drawMap(data);
     });
   </script>
 </body>
