@@ -18,8 +18,12 @@ input.style.padding = "0.5rem";
 input.style.border = "1px solid lime";
 input.style.background = "black";
 input.style.color = "lime";
-document.body.appendChild(input);
-input.focus();
+// Ensure only one input
+if (!document.getElementById("terminalInput")) {
+  input.id = "terminalInput";
+  document.body.appendChild(input);
+  input.focus();
+}
 
 let sharedText = "";
 let allCharacters = {};
