@@ -19,3 +19,8 @@ All user generated content (characters, maps, logs and lore) is stored in the
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.
 - The GM can add entries from the GM menu using **Add Lore**.
+
+**Advanced Classes**
+The character creator now includes additional options from OSE Advanced
+Fantasy such as Assassin, Barbarian, Bard, Druid, Illusionist, Knight,
+Paladin and Ranger.

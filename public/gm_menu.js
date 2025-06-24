@@ -16,6 +16,8 @@ let mapData = [];
 let mapName = '';
 let selectedTile = '';
 
+let charNameTemp = '';
+
 let tiles = [];
 
 function buildPalette() {
@@ -147,8 +149,8 @@ function handleInput(text) {
         mode = 'dmmsg';
         break;
       case '5':
-        display.textContent = 'Enter character dialogue:';
-        mode = 'chard';
+        display.textContent = 'Enter character name:';
+        mode = 'chardName';
         break;
       case '6':
         display.textContent = 'Enter event dialogue:';
@@ -223,8 +225,13 @@ function handleInput(text) {
   } else if (mode === 'dmmsg') {
     socket.emit('dmMessage', text);
     showMainMenu();
-  } else if (mode === 'chard') {
-    socket.emit('gmChar', text);
+  } else if (mode === 'chardName') {
+    charNameTemp = text;
+    display.textContent = `Enter dialogue for ${charNameTemp}:`;
+    mode = 'chardText';
+  } else if (mode === 'chardText') {
+    socket.emit('gmChar', `${charNameTemp}: ${text}`);
+    charNameTemp = '';
     showMainMenu();
   } else if (mode === 'eventd') {
     socket.emit('gmEvent', text);
