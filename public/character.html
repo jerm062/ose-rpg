@@ -39,6 +39,22 @@
       display.textContent = 'No character found.';
     }
 
+    function encumbrance(char) {
+      let slots = (char.inventory || []).length;
+      const coins = char.gold || 0;
+      slots += Math.ceil(coins / 100);
+      if (char.inventory.includes('Plate Mail')) slots += 5;
+      if (char.inventory.includes('Chain Mail')) slots += 4;
+      if (char.inventory.includes('Leather Armor')) slots += 2;
+      if (char.inventory.includes('Shield')) slots += 1;
+      let mv;
+      if (slots <= 5) mv = '120\'';
+      else if (slots <= 10) mv = '90\'';
+      else if (slots <= 15) mv = '60\'';
+      else mv = '30\'';
+      return { slots, mv };
+    }
+
     let currentChar = null;
     socket.on('characterLoaded', (charData) => {
       currentChar = charData;
@@ -51,6 +67,10 @@
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +
         `AC:${charData.ac} ` +
         `XP:<input id="xpInput" type="number" value="${charData.xp}" style="width:80px">/${charData.nextLevelXP}<br>` +
+        (() => {
+          const enc = encumbrance(charData);
+          return `ENC:${enc.slots} MV:${enc.mv}<br>`;
+        })() +
         `<button id="saveBtn">Save</button>`;
 
       document.getElementById('saveBtn').onclick = () => {
