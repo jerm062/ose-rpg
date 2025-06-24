@@ -1,3 +1,3 @@
-
-// player_client.js placeholder
-console.log("Player client loaded.");
+// updated player_client.js content (from canvas)
+const socket = io();
+...
