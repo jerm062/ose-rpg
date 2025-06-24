@@ -17,6 +17,12 @@
     }
     a { color: #00ffcc; }
     pre { white-space: pre-wrap; }
+    .char { color: deepskyblue; }
+    .location { color: violet; }
+    .item { color: gold; }
+    .spell { color: orchid; }
+    .monster { color: tomato; }
+    .gold { color: khaki; }
   </style>
 </head>
 <body>
@@ -27,12 +33,21 @@
   <script>
     const display = document.getElementById('journal');
     const socket = io();
+    function colorize(text) {
+      return text
+        .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
+        .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
+        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
+        .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
+        .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
+        .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
+    }
     socket.emit('getCampaignLog');
     socket.on('campaignLog', (log) => {
-      display.textContent = log.join('\n');
+      display.innerHTML = log.map(colorize).join('<br>');
     });
     socket.on('logUpdate', (entry) => {
-      display.textContent += '\n' + entry;
+      display.innerHTML += '<br>' + colorize(entry);
     });
   </script>
 </body>

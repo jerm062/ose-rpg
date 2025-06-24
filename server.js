@@ -82,6 +82,31 @@ io.on("connection", (socket) => {
   });
 
   socket.on("playerMessage", ({ name, message }) => {
+    // Consume items prefixed with # and subtract gold when $amount is found
+    const char = savedCharacters[name];
+    if (char) {
+      const itemRegex = /#([\w ]+)/g;
+      let match;
+      while ((match = itemRegex.exec(message))) {
+        const itemName = match[1].trim().toLowerCase();
+        const idx = (char.inventory || []).findIndex(
+          (it) => it.toLowerCase() === itemName
+        );
+        if (idx !== -1) {
+          char.inventory.splice(idx, 1);
+        }
+      }
+
+      const goldRegex = /\$(\d+)/g;
+      while ((match = goldRegex.exec(message))) {
+        const amt = parseInt(match[1], 10);
+        if (!isNaN(amt)) {
+          char.gold = Math.max(0, (char.gold || 0) - amt);
+        }
+      }
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+    }
+
     const entry = `[Player] ${name}: ${message}`;
     campaignLog.push(entry);
     fs.appendFile(LOG_FILE, entry + "\n", () => {});
