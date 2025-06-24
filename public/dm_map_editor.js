@@ -1,3 +1,3 @@
-// updated dm_map_editor.js content (from canvas)
+// [dm_map_editor.js content — GM interface with single input and menus]
 const socket = io();
 ...
