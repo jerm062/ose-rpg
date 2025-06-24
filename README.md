@@ -26,3 +26,8 @@ These folders make it safe to update the code without losing your campaign files
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.
 - The GM can add entries from the GM menu using **Add Lore**.
+
+**Advanced Classes**
+The character creator now includes additional options from OSE Advanced
+Fantasy such as Assassin, Barbarian, Bard, Druid, Illusionist, Knight,
+Paladin and Ranger.
