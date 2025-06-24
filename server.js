@@ -90,9 +90,18 @@ if (fs.existsSync(LORE_FILE)) {
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/icons', express.static(path.join(__dirname, 'icons')));
 app.use('/organized_tiles', express.static(path.join(__dirname, 'organized_tiles')));
 app.get('/organized_tileset.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'organized_tileset.json'));
+});
+
+app.get('/icons/list', (req, res) => {
+  fs.readdir(path.join(__dirname, 'icons'), (err, files) => {
+    if (err) return res.json([]);
+    const list = files.filter((f) => f.endsWith('.png'));
+    res.json(list);
+  });
 });
 
 // Redirect root to player.html for Render or localhost

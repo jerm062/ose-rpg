@@ -13,6 +13,8 @@ All user generated content (characters, maps, logs and lore) is stored in the
 - Select **New map** for a blank map or **Map list** to load one to edit.
 - Use the map controls to name and **Save Map**.
 - Choose **Share map** to show a saved map to the players.
+- Tiles are loaded from the `/icons` directory and can be placed by clicking an
+  icon in the sidebar and then on a grid cell.
 
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.

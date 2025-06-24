@@ -43,6 +43,19 @@
           drawTile(ctx, data[y][x], x * TILE_SIZE, y * TILE_SIZE);
         }
       }
+      ctx.strokeStyle = '#555';
+      for (let x = 0; x <= data[0].length; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * TILE_SIZE + 0.5, 0);
+        ctx.lineTo(x * TILE_SIZE + 0.5, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= data.length; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * TILE_SIZE + 0.5);
+        ctx.lineTo(canvas.width, y * TILE_SIZE + 0.5);
+        ctx.stroke();
+      }
     }
 
     (async () => {
