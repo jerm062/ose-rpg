@@ -34,7 +34,8 @@
 </head>
 <body>
   <script>
-    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+    const theme = localStorage.getItem('theme') || 'theme-classic.css';
+    document.getElementById('themeStylesheet').href = theme;
   </script>
   <pre id="log"></pre>
   <div id="readyBox" class="readyBar"></div>
