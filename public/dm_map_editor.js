@@ -1,3 +1,0 @@
-// placeholder for dm_map_editor.js - already working version from canvas
-const socket = io();
-...
