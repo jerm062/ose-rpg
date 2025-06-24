@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Character Sheet</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+    a { color: #00ffcc; }
+  </style>
+</head>
+<body>
+  <pre id="charDisplay">Loading...</pre>
+  <p><a href="player.html">&#x2B05; Back</a></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const display = document.getElementById('charDisplay');
+    const socket = io();
+    const name = localStorage.getItem('characterName');
+    if (name) {
+      socket.emit('loadCharacter', name);
+    } else {
+      display.textContent = 'No character found.';
+    }
+    socket.on('characterLoaded', (charData) => {
+      const s = charData.stats || {};
+      display.textContent =
+        charData.name + '\n' +
+        'Class: ' + charData.class + ' ' + charData.alignment + '\n' +
+        `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}\n` +
+        `HP:${charData.hp} AC:${charData.ac} XP:${charData.xp}/${charData.nextLevelXP}`;
+    });
+  </script>
+</body>
+</html>

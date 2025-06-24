@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chat</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+    a { color: #00ffcc; }
+    pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid #0f0; padding: 0.5rem; }
+    input { width: 100%; font-size: 18px; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <pre id="log"></pre>
+  <input id="chatInput" placeholder="message" autocomplete="off" />
+  <p><a href="player.html">&#x2B05; Back</a></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const logEl = document.getElementById('log');
+    const input = document.getElementById('chatInput');
+    const name = localStorage.getItem('characterName') || 'Anon';
+
+    socket.emit('getCampaignLog');
+    socket.on('campaignLog', (log) => {
+      logEl.textContent = log.join('\n');
+    });
+    socket.on('logUpdate', (entry) => {
+      logEl.textContent += '\n' + entry;
+      logEl.scrollTop = logEl.scrollHeight;
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && input.value.trim()) {
+        socket.emit('playerMessage', { name, message: input.value.trim() });
+        input.value = '';
+      }
+    });
+  </script>
+</body>
+</html>
