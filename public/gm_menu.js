@@ -17,6 +17,8 @@ let mapData = [];
 let mapName = '';
 let selectedTile = '';
 
+let currentDateText = '';
+
 let charNameTemp = '';
 
 let tiles = [];
@@ -66,7 +68,8 @@ function showMainMenu() {
     '7. Story dialogue\n' +
     '8. Help\n' +
     '9. Add Lore\n' +
-    '10. Edit Data';
+    '10. Edit Data\n' +
+    '11. Calendar';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
@@ -115,6 +118,14 @@ function showDataMenu() {
   palette.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'dataMenu';
+}
+
+function showCalendarMenu() {
+  display.textContent = `Calendar\nToday: ${currentDateText}\n1. Advance day\n0. Return`;
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'calendar';
 }
 
 function drawMap() {
@@ -192,6 +203,10 @@ function handleInput(text) {
         break;
       case '10':
         showDataMenu();
+        break;
+      case '11':
+        socket.emit('getDate');
+        showCalendarMenu();
         break;
       default:
         showMainMenu();
@@ -427,6 +442,13 @@ function handleInput(text) {
     socket.emit('editLog', text);
     display.textContent = 'Log updated.';
     mode = 'help';
+  } else if (mode === 'calendar') {
+    if (text === '1') {
+      socket.emit('advanceDay');
+    }
+    if (text === '0' || text === '1') {
+      showMainMenu();
+    }
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
@@ -483,6 +505,11 @@ socket.on('readyList', (list) => {
     .join('\n');
 });
 
+socket.on('currentDate', (d) => {
+  currentDateText = d;
+  if (mode === 'calendar') showCalendarMenu();
+});
+
 canvas.addEventListener('click', (ev) => {
   if (mode !== 'editmap') return;
   const x = Math.floor(ev.offsetX / cellSize);
@@ -525,6 +552,7 @@ fillMapBtn.addEventListener('click', () => {
   await loadTileset();
   tiles = TILES;
   selectedTile = TILES[0];
+  socket.emit('getDate');
   showMainMenu();
   input.focus();
 })();

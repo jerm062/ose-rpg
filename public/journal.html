@@ -34,32 +34,28 @@
     const theme = localStorage.getItem('theme') || 'theme-classic.css';
     document.getElementById('themeStylesheet').href = theme;
   </script>
-  <pre id="journal">Loading...</pre>
+  <textarea id="journal" rows="10" style="width:100%">Loading...</textarea>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const display = document.getElementById('journal');
-    const socket = io();
-    function colorize(text) {
-      if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
-      if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
-      if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
-      return text
-        .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
-        .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
-        .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
-        .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
-        .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
-    }
-    socket.emit('getCampaignLog');
-    socket.on('campaignLog', (log) => {
-      display.innerHTML = log.map(colorize).join('<br>');
-    });
-    socket.on('logUpdate', (entry) => {
-      display.innerHTML += '<br>' + colorize(entry);
-    });
+  const display = document.getElementById('journal');
+  const socket = io();
+  const name = localStorage.getItem('characterName');
+  if (name) {
+    socket.emit('getJournal', name);
+  }
+  let saveTimer;
+  display.addEventListener('input', () => {
+    if (!name) return;
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      socket.emit('saveJournal', { name, text: display.value });
+    }, 500);
+  });
+  socket.on('journalData', (text) => {
+    display.value = text;
+  });
   </script>
 </body>
 </html>
