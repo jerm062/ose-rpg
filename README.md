@@ -10,3 +10,7 @@ OSE RPG Full Bundle
 - Select **New map** for a blank map or **Map list** to load one to edit.
 - Use the map controls to name and **Save Map**.
 - Choose **Share map** to show a saved map to the players.
+
+**Lore Book**
+- Players can open the lore book from the main menu to view campaign lore.
+- The GM can add entries from the GM menu using **Add Lore**.
