@@ -84,12 +84,9 @@ function showCharMenu() {
 function showMapMenu() {
   display.textContent =
     'Map Menu\n' +
-    '1. View map\n' +
-    '2. Edit map\n' +
-    '3. Save map\n' +
-    '4. Load map\n' +
-    '5. Delete map\n' +
-    '6. Share map\n' +
+    '1. New map\n' +
+    '2. Map list\n' +
+    '3. Share map\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -178,31 +175,20 @@ function handleInput(text) {
   } else if (mode === 'mapMenu') {
     switch (text) {
       case '1':
-        mapName = 'shared';
-        socket.emit('getMap');
-        mode = 'viewmap';
-        break;
-      case '2':
-        mapName = 'shared';
-        socket.emit('getMap');
+        mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
+        mapName = '';
         buildPalette();
-        mapNameInput.value = mapName;
+        mapNameInput.value = '';
         mapControls.style.display = 'block';
+        drawMap();
+        display.textContent = 'Editing new map\n0. Return';
         mode = 'editmap';
         break;
+      case '2':
+        socket.emit('getMapList');
+        mode = 'editmaplist';
+        break;
       case '3':
-        display.textContent = 'Enter name to save current map:';
-        mode = 'savemap';
-        break;
-      case '4':
-        socket.emit('getMapList');
-        mode = 'loadmaplist';
-        break;
-      case '5':
-        socket.emit('getMapList');
-        mode = 'deletemaplist';
-        break;
-      case '6':
         socket.emit('getMapList');
         mode = 'sharemaplist';
         break;
@@ -229,7 +215,7 @@ function handleInput(text) {
     showMainMenu();
   } else if (mode === 'log') {
     if (text === '0') showMainMenu();
-  } else if (mode === 'viewmap' || mode === 'editmap') {
+  } else if (mode === 'editmap') {
     if (text === '0') {
       showMainMenu();
       palette.style.display = 'none';
@@ -239,10 +225,6 @@ function handleInput(text) {
     if (text === '0') {
       showMainMenu();
     }
-  } else if (mode === 'savemap') {
-    mapName = text;
-    socket.emit('saveMap', { name: text, data: mapData });
-    showMainMenu();
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
@@ -250,9 +232,6 @@ function handleInput(text) {
     mapNameInput.value = mapName;
     mapControls.style.display = 'block';
     mode = 'editmap';
-  } else if (mode === 'deletemap') {
-    socket.emit('deleteMap', text);
-    showMainMenu();
   } else if (mode === 'sharemap') {
     socket.emit('shareMap', text);
     showMainMenu();
@@ -283,9 +262,7 @@ socket.on('logUpdate', (entry) => {
 socket.on('mapData', (data) => {
   mapData = data;
   drawMap();
-  if (mode === 'viewmap') {
-    display.textContent = `Viewing map: ${mapName}\n0. Return`;
-  } else if (mode === 'editmap') {
+  if (mode === 'editmap') {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
     mapNameInput.value = mapName;
     mapControls.style.display = 'block';
@@ -294,8 +271,7 @@ socket.on('mapData', (data) => {
 
 socket.on('mapList', (list) => {
   display.textContent = 'Maps:\n' + list.join('\n') + '\nEnter name:';
-  if (mode === 'loadmaplist') mode = 'loadmap';
-  else if (mode === 'deletemaplist') mode = 'deletemap';
+  if (mode === 'editmaplist') mode = 'loadmap';
   else if (mode === 'sharemaplist') mode = 'sharemap';
 });
 
