@@ -24,7 +24,7 @@
     const theme = localStorage.getItem('theme') || 'theme-classic.css';
     document.getElementById('themeStylesheet').href = theme;
   </script>
-  <pre id="itemsDisplay">Loading...</pre>
+  <div id="itemsDisplay">Loading...</div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -32,6 +32,7 @@
     const display = document.getElementById('itemsDisplay');
     const socket = io();
     const name = localStorage.getItem('characterName');
+    let currentChar = null;
     if (name) {
       socket.emit('loadCharacter', name);
     } else {
@@ -53,18 +54,51 @@
       return { slots, mv };
     }
     socket.on('characterLoaded', (charData) => {
-      const enc = encumbrance(charData);
-      const equipped = charData.equipped || [];
-      const stowed = (charData.inventory || []).filter(
+      currentChar = charData;
+      render();
+    });
+
+    function render() {
+      if (!currentChar) return;
+      const enc = encumbrance(currentChar);
+      const equipped = currentChar.equipped || [];
+      const stowed = (currentChar.inventory || []).filter(
         (it) => !equipped.includes(it)
       );
-      display.textContent =
-        'Equipped:\n' +
-        (equipped.join('\n') || '(none)') +
-        '\n\nStowed:\n' +
-        (stowed.join('\n') || '(none)') +
-        `\n\nGold: ${charData.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`;
-    });
+      let html = '<strong>Equipped</strong><br>';
+      html +=
+        equipped
+          .map(
+            (it) =>
+              `${it} <button data-e="${it}">Unequip</button> <button data-r="${it}">Remove</button>`
+          )
+          .join('<br>') || '(none)';
+      html += '<br><br><strong>Stowed</strong><br>';
+      html +=
+        (stowed
+          .map(
+            (it) =>
+              `${it} <button data-s="${it}">Equip</button> <button data-r="${it}">Remove</button>`
+          )
+          .join('<br>')) || '(none)';
+      html += `<br><br>Gold: ${currentChar.gold || 0}<br>ENC:${enc.slots} MV:${enc.mv}`;
+      display.innerHTML = html;
+      document.querySelectorAll('button[data-e]').forEach((b) => {
+        b.onclick = () => {
+          socket.emit('unequipItem', { name, item: b.getAttribute('data-e') });
+        };
+      });
+      document.querySelectorAll('button[data-s]').forEach((b) => {
+        b.onclick = () => {
+          socket.emit('equipItem', { name, item: b.getAttribute('data-s') });
+        };
+      });
+      document.querySelectorAll('button[data-r]').forEach((b) => {
+        b.onclick = () => {
+          socket.emit('removeItem', { name, item: b.getAttribute('data-r') });
+        };
+      });
+    }
   </script>
 </body>
 </html>

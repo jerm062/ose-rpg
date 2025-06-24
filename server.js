@@ -89,6 +89,13 @@ function saveLore() {
   fs.writeFile(LORE_FILE, JSON.stringify(lore, null, 2), () => {});
 }
 
+function saveAll() {
+  fs.writeFileSync(CHAR_FILE, JSON.stringify(savedCharacters, null, 2));
+  fs.writeFileSync(MAP_FILE, JSON.stringify({ maps, sharedMap }, null, 2));
+  fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
+  fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
@@ -218,6 +225,41 @@ io.on("connection", (socket) => {
     if (c && c.status) {
       c.status = c.status.filter((s) => s !== status);
       if (status === "drunk") c.beersDrank = 0;
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      socket.emit("characterLoaded", c);
+    }
+  });
+
+  socket.on("equipItem", ({ name, item }) => {
+    const c = savedCharacters[name];
+    if (c) {
+      c.inventory = c.inventory || [];
+      c.equipped = c.equipped || [];
+      if (c.inventory.includes(item) && !c.equipped.includes(item)) {
+        c.equipped.push(item);
+      }
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      socket.emit("characterLoaded", c);
+    }
+  });
+
+  socket.on("unequipItem", ({ name, item }) => {
+    const c = savedCharacters[name];
+    if (c && c.equipped) {
+      const idx = c.equipped.indexOf(item);
+      if (idx !== -1) c.equipped.splice(idx, 1);
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      socket.emit("characterLoaded", c);
+    }
+  });
+
+  socket.on("removeItem", ({ name, item }) => {
+    const c = savedCharacters[name];
+    if (c) {
+      const idx = (c.inventory || []).indexOf(item);
+      if (idx !== -1) c.inventory.splice(idx, 1);
+      const eidx = (c.equipped || []).indexOf(item);
+      if (eidx !== -1) c.equipped.splice(eidx, 1);
       fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
       socket.emit("characterLoaded", c);
     }
@@ -461,6 +503,10 @@ io.on("connection", (socket) => {
   socket.on("updateSharedText", (text) => {
     sharedText = text;
     io.emit("sharedText", sharedText);
+  });
+
+  socket.on("saveAll", () => {
+    saveAll();
   });
 
   socket.on("disconnect", () => {
