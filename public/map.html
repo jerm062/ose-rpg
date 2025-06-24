@@ -18,31 +18,18 @@
     }
     a { color: var(--link); }
     canvas { border: 1px solid var(--border); }
-    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+  </script>
   <canvas id="mapCanvas" width="600" height="600"></canvas>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="tiles.js"></script>
   <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
 
     const canvas = document.getElementById('mapCanvas');
     const ctx = canvas.getContext('2d');
@@ -55,6 +42,19 @@
         for (let x = 0; x < data[y].length; x++) {
           drawTile(ctx, data[y][x], x * TILE_SIZE, y * TILE_SIZE);
         }
+      }
+      ctx.strokeStyle = '#555';
+      for (let x = 0; x <= data[0].length; x++) {
+        ctx.beginPath();
+        ctx.moveTo(x * TILE_SIZE + 0.5, 0);
+        ctx.lineTo(x * TILE_SIZE + 0.5, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y <= data.length; y++) {
+        ctx.beginPath();
+        ctx.moveTo(0, y * TILE_SIZE + 0.5);
+        ctx.lineTo(canvas.width, y * TILE_SIZE + 0.5);
+        ctx.stroke();
       }
     }
 

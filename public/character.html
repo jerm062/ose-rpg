@@ -23,30 +23,17 @@
       border: 1px solid var(--border);
       font-family: monospace;
     }
-    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+  </script>
   <div id="charDisplay">Loading...</div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const sel = document.getElementById('themeSelect');
-    const savedTheme = localStorage.getItem('theme') || 'classic';
-    sel.value = savedTheme;
-    document.getElementById('themeStylesheet').href = `theme-${savedTheme}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
 
     const display = document.getElementById('charDisplay');
     const socket = io();

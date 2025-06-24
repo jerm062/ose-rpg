@@ -104,6 +104,19 @@ function drawMap() {
       drawTile(ctx, mapData[y][x], x * cellSize, y * cellSize);
     }
   }
+  ctx.strokeStyle = '#555';
+  for (let x = 0; x <= mapData[0].length; x++) {
+    ctx.beginPath();
+    ctx.moveTo(x * cellSize + 0.5, 0);
+    ctx.lineTo(x * cellSize + 0.5, canvas.height);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= mapData.length; y++) {
+    ctx.beginPath();
+    ctx.moveTo(0, y * cellSize + 0.5);
+    ctx.lineTo(canvas.width, y * cellSize + 0.5);
+    ctx.stroke();
+  }
   canvas.style.display = 'block';
   if (mode === 'editmap') palette.style.display = 'block';
 }
@@ -185,6 +198,7 @@ function handleInput(text) {
         buildPalette();
         mapNameInput.value = '';
         mapControls.style.display = 'block';
+        palette.style.display = 'block';
         drawMap();
         display.textContent = 'Editing new map\n0. Return';
         mode = 'editmap';
@@ -332,7 +346,13 @@ socket.emit('saveMap', { name, data: mapData });
 newMapBtn.addEventListener('click', () => {
   mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
   mapName = '';
+  buildPalette();
+  mapNameInput.value = '';
+  mapControls.style.display = 'block';
+  palette.style.display = 'block';
   drawMap();
+  display.textContent = 'Editing new map\n0. Return';
+  mode = 'editmap';
 });
 
 (async () => {

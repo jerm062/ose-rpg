@@ -30,16 +30,12 @@
     .gmevent { color: orange; }
     .gmstory { color: plum; }
     input { width: 100%; font-size: 18px; margin-top: 0.5rem; background: var(--accent-bg); color: var(--accent-fg); border: 1px solid var(--border); }
-    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+  </script>
   <pre id="log"></pre>
   <div id="readyBox" class="readyBar"></div>
   <input id="chatInput" placeholder="message" autocomplete="off" />
@@ -47,15 +43,6 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
     const socket = io();
     const logEl = document.getElementById('log');
     const readyBox = document.getElementById('readyBox');
