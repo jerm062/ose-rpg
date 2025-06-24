@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Journal</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+    a { color: #00ffcc; }
+    pre { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <pre id="journal">Loading...</pre>
+  <p><a href="player.html">&#x2B05; Back</a></p>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const display = document.getElementById('journal');
+    const socket = io();
+    socket.emit('getCampaignLog');
+    socket.on('campaignLog', (log) => {
+      display.textContent = log.join('\n');
+    });
+    socket.on('logUpdate', (entry) => {
+      display.textContent += '\n' + entry;
+    });
+  </script>
+</body>
+</html>

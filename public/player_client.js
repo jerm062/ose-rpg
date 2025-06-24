@@ -44,7 +44,8 @@ window.onload = function () {
         '2. Items\n' +
         '3. Map\n' +
         '4. Chat\n' +
-        '5. Journal'
+        '5. Journal\n' +
+        '(Selecting an option opens a new page)'
     );
     phase = 'menu';
   }
@@ -176,22 +177,19 @@ window.onload = function () {
     } else if (phase === 'menu') {
       switch (text) {
         case '1':
-          showCharacterSheet();
+          window.location.href = 'character.html';
           break;
         case '2':
-          showItems();
+          window.location.href = 'items.html';
           break;
         case '3':
-          socket.emit('getMap');
-          phase = 'map';
+          window.location.href = 'map.html';
           break;
         case '4':
-          printMessage('Enter message, 0 to return');
-          phase = 'chat';
+          window.location.href = 'chat.html';
           break;
         case '5':
-          socket.emit('getCampaignLog');
-          phase = 'journal';
+          window.location.href = 'journal.html';
           break;
         default:
           printMessage('Invalid choice.');
