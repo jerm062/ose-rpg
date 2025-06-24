@@ -4,3 +4,9 @@ OSE RPG Full Bundle
 1. Run `npm install` to install dependencies.
 2. Start the server with `node server.js`.
 3. Visit [http://localhost:3000/player.html](http://localhost:3000/player.html) in your browser.
+
+**GM Map Maker**
+- Choose **Map Menu** from the GM interface.
+- Select **New map** for a blank map or **Map list** to load one to edit.
+- Use the map controls to name and **Save Map**.
+- Choose **Share map** to show a saved map to the players.
