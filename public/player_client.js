@@ -32,6 +32,44 @@ window.onload = function () {
   ];
   const spells = ['Magic Missile', 'Shield', 'Sleep', 'Light', 'Charm Person'];
 
+  function rollStat() {
+    const d6 = () => Math.floor(Math.random() * 6) + 1;
+    return d6() + d6() + d6();
+  }
+
+  function showMenu() {
+    printMessage(
+      'Main Menu\n' +
+        '1. Character Sheet\n' +
+        '2. Items\n' +
+        '3. Map\n' +
+        '4. Chat\n' +
+        '5. Journal'
+    );
+    phase = 'menu';
+  }
+
+  function showCharacterSheet() {
+    const s = currentChar.stats || {};
+    printMessage(
+      `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}`
+    );
+    printMessage(
+      `HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
+    );
+    showMenu();
+  }
+
+  function showItems() {
+    printMessage('Items: ' + (currentChar.inventory || []).join(', '));
+    showMenu();
+  }
+
+  function printMap(data) {
+    printMessage(data.map((row) => row.join('')).join('\n'));
+    printMessage('0. Return');
+  }
+
   const savedName = localStorage.getItem('characterName');
   if (savedName) {
     socket.emit('loadCharacter', savedName);
@@ -81,8 +119,21 @@ window.onload = function () {
         currentChar.career = career.name;
         currentChar.inventory.push(...career.items);
         printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
+        currentChar.stats = {
+          STR: rollStat(),
+          DEX: rollStat(),
+          CON: rollStat(),
+          INT: rollStat(),
+          WIS: rollStat(),
+          CHA: rollStat()
+        };
+        currentChar.hp = Math.floor(Math.random() * 6) + 1;
+        currentChar.ac = 9;
+        currentChar.xp = 0;
+        currentChar.nextLevelXP = 2000;
         const roll = () => Math.floor(Math.random() * 6) + 1;
         currentChar.gold = (roll() + roll() + roll()) * 10;
+        printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
         printMessage(`You have ${currentChar.gold}gp to spend.`);
         showShop();
         phase = 'shop';
@@ -122,9 +173,43 @@ window.onload = function () {
       } else {
         printMessage('Invalid spell.');
       }
-    } else if (phase === 'playing') {
-      printMessage('> ' + text);
-      socket.emit('playerMessage', { name: currentChar.name, message: text });
+    } else if (phase === 'menu') {
+      switch (text) {
+        case '1':
+          showCharacterSheet();
+          break;
+        case '2':
+          showItems();
+          break;
+        case '3':
+          socket.emit('getMap');
+          phase = 'map';
+          break;
+        case '4':
+          printMessage('Enter message, 0 to return');
+          phase = 'chat';
+          break;
+        case '5':
+          socket.emit('getCampaignLog');
+          phase = 'journal';
+          break;
+        default:
+          printMessage('Invalid choice.');
+      }
+    } else if (phase === 'chat') {
+      if (text === '0') {
+        showMenu();
+      } else {
+        socket.emit('playerMessage', { name: currentChar.name, message: text });
+      }
+    } else if (phase === 'map') {
+      if (text === '0') {
+        showMenu();
+      }
+    } else if (phase === 'journal') {
+      if (text === '0') {
+        showMenu();
+      }
     }
   }
 
@@ -143,7 +228,7 @@ window.onload = function () {
     currentChar = charData;
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
-    phase = 'playing';
+    showMenu();
   });
 
   socket.on('characterNotFound', () => {
@@ -154,6 +239,19 @@ window.onload = function () {
 
   socket.on('logUpdate', (entry) => {
     printMessage(entry);
+  });
+
+  socket.on('mapData', (data) => {
+    if (phase === 'map') {
+      printMap(data);
+    }
+  });
+
+  socket.on('campaignLog', (log) => {
+    if (phase === 'journal') {
+      printMessage(log.join('\n'));
+      printMessage('0. Return');
+    }
   });
 
   if (!savedName) {
