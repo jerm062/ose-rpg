@@ -2,6 +2,8 @@ window.onload = function () {
   const socket = io();
   const gameDisplay = document.getElementById('gameDisplay');
   const commandInput = document.getElementById('commandInput');
+  const careerButton = document.getElementById('careerButton');
+  careerButton.style.display = 'none';
 
   let phase = 'enterName';
   let currentChar = null;
@@ -22,16 +24,106 @@ window.onload = function () {
   ];
   const alignments = ['Lawful', 'Neutral', 'Chaotic'];
   const careers = [
-    { name: 'Alchemist', items: ['pestle and mortar', 'jar of chemicals'] },
-    { name: 'Baker', items: ['rolling pin', 'loaf of bread'] },
-    { name: 'Blacksmith', items: ['hammer', 'tongs'] },
-    { name: 'Farmer', items: ['pitchfork', 'seed pouch'] },
-    { name: 'Gambler', items: ['dice set', 'fine clothes'] },
-    { name: 'Herbalist', items: ['herb pouch', 'mortar'] },
-    { name: 'Hunter', items: ['short bow', 'animal trap'] },
-    { name: 'Sailor', items: ['dagger', 'coil of rope'] },
-    { name: 'Soldier', items: ['spear', 'shield'] },
-    { name: 'Urchin', items: ['dagger', 'rat on a string'] }
+    { name: 'Acolyte', items: ['candlestick', 'censer', 'incense'] },
+    { name: 'Acrobat', items: ['flash powder', 'balls', 'lamp oil'] },
+    { name: 'Actor', items: ['wig', 'makeup', 'costume'] },
+    { name: 'Alchemist', items: ['acid', 'mortar/pestle', '6 vials'] },
+    { name: 'Antiquarian', items: ['old coin', 'flag', 'lore book'] },
+    { name: 'Arcanist', items: ['spell book', 'arcane robes', 'chalk'] },
+    { name: 'Architect', items: ['plumb line', 'level', 'ruler'] },
+    { name: 'Assassin', items: ['crossbow', 'garrote', 'soft boots'] },
+    { name: 'Astrologer', items: ['star charts', 'almanac', 'telescope'] },
+    { name: 'Baker', items: ['rolling pin', 'flour bag', 'lard block'] },
+    { name: 'Bandit', items: ['mask', 'manacles', 'caltrops'] },
+    { name: 'Barber', items: ['scissors', 'hair oil', 'straight razor'] },
+    { name: 'Beast Tamer', items: ['whip', 'gloves', 'leash'] },
+    { name: 'Beekeeper', items: ['honey', 'mask', 'smoke bomb'] },
+    { name: 'Blacksmith', items: ['hammer', 'bellows', 'tongs'] },
+    { name: 'Boatman', items: ['10\' pole', 'instrument', 'paddle'] },
+    { name: 'Bookbinder', items: ['sewing kit', 'glue', 'quill/ink'] },
+    { name: 'Brewer', items: ['mash paddle', 'beer keg', 'hops'] },
+    { name: 'Burglar', items: ['lockpicks', 'grappling hook', 'rope'] },
+    { name: 'Butcher', items: ['cleaver', 'meat hook', 'bacon'] },
+    { name: 'Candlemaker', items: ['10 candles', 'lamp oil', 'wax'] },
+    { name: 'Carpenter', items: ['hammer', 'saw', 'box of nails'] },
+    { name: 'Charlatan', items: ['costume', 'fake elixir', 'degree'] },
+    { name: 'Cobbler', items: ['leather roll', 'fancy shoes', 'tacks'] },
+    { name: 'Coachman', items: ['whip', 'lockbox', 'oilskin coat'] },
+    { name: 'Cook', items: ['frying pan', 'salt', 'olive oil'] },
+    { name: 'Courier', items: ['oilskin bag', 'local map', 'lantern'] },
+    { name: 'Courtier', items: ['perfume', 'wig', 'fan'] },
+    { name: 'Cultist', items: ['dagger', 'ritual robes', 'amulet'] },
+    { name: 'Cutpurse', items: ['knife', 'caltrops', 'sack'] },
+    { name: 'Dyer', items: ['10\' pole', 'dyes', 'soap'] },
+    { name: 'Explorer', items: ['sextant', 'spyglass', 'crampons'] },
+    { name: 'Falconer', items: ['bird cage', 'gloves', 'whistle'] },
+    { name: 'Fence', items: ['short sword', 'file', 'sealing wax'] },
+    { name: 'Fisherman', items: ['spear', 'net', 'fishing tackle'] },
+    { name: 'Folklorist', items: ['prophecy', 'bones', 'scales'] },
+    { name: 'Gambler', items: ['rapier', 'card deck', 'dice'] },
+    { name: 'Gamekeeper', items: ['sling', 'horn', 'rope ladder'] },
+    { name: 'Gardener', items: ['sickle', 'shovel', 'shears'] },
+    { name: 'Grave Robber', items: ['saw', 'crowbar', 'pulleys'] },
+    { name: 'Gravedigger', items: ['shovel', 'pickaxe', 'bucket'] },
+    { name: 'Groom', items: ['oats', 'horse brush', 'blanket'] },
+    { name: 'Guard', items: ['halberd', 'livery', 'horn'] },
+    { name: 'Headsman', items: ['axe', 'hood', 'garrote'] },
+    { name: 'Herbalist', items: ['herbs', 'sickle', 'herb manual'] },
+    { name: 'Hermit', items: ['staff', 'fungi', 'basket'] },
+    { name: 'Hunter', items: ['tent', 'bearskin', 'bear trap'] },
+    { name: 'Innkeeper', items: ['ladle', '10 candles', 'cauldron'] },
+    { name: 'Inquisitor', items: ['manual', 'vestments', 'pliers'] },
+    { name: 'Investigator', items: ['journal', 'manacles', 'vial'] },
+    { name: 'Jailer', items: ['padlock', "10' chain", 'wine jug'] },
+    { name: 'Jester', items: ['scepter', 'donkey head', 'motley'] },
+    { name: 'Jeweler', items: ['pliers', 'loupe', 'tweezers'] },
+    { name: 'Knight', items: ["lady's favor", 'banner', 'signet ring'] },
+    { name: 'Kidnapper', items: ['chloroform', 'manacles', 'hood'] },
+    { name: 'Lawyer', items: ['fancy robe', 'law book', 'certificate'] },
+    { name: 'Locksmith', items: ['crowbar', 'picks', 'padlock'] },
+    { name: 'Mason', items: ['chisel', 'hammer', 'chalk'] },
+    { name: 'Merchant', items: ['scales', 'strongbox', 'bag of spice'] },
+    { name: 'Miner', items: ['pickaxe', 'lantern', 'pet canary'] },
+    { name: 'Musician', items: ['3 instruments'] },
+    { name: 'Naturalist', items: ['fossil', 'insect case', 'geode'] },
+    { name: 'Officer', items: ['shoe polish', 'medal', 'spyglass'] },
+    { name: 'Oracle', items: ['tea leaves', 'tarot deck', 'crystal'] },
+    { name: 'Orator', items: ['100 marbles', 'bullhorn', 'wax tablet'] },
+    { name: 'Painter', items: ['linseed oil', 'pigments', 'brushes'] },
+    { name: 'Peddler', items: ['bucket', "300' twine", 'mirror'] },
+    { name: 'Philosopher', items: ['staff', 'lantern', 'chalk'] },
+    { name: 'Physician', items: ['saw', 'scalpel', 'wine jug'] },
+    { name: 'Pilgrim', items: ['staff', 'relic', 'letter of passage'] },
+    { name: 'Pirate', items: ['sextant', 'cannonball', 'grappling hook'] },
+    { name: 'Pit Fighter', items: ['net', 'whip', 'wine jug'] },
+    { name: 'Playwright', items: ['quill/ink', 'skull', '10 candles'] },
+    { name: 'Poacher', items: ['animal scent', 'bow', '20 arrows'] },
+    { name: 'Poet', items: ['stationery', 'bell', 'perfume'] },
+    { name: 'Priest', items: ['holy water', '10 stakes', 'prayer book'] },
+    { name: 'Prospector', items: ['10 iron spikes', 'pickaxe', 'pan'] },
+    { name: 'Puppeteer', items: ['confetti', 'puppet', 'sewing kit'] },
+    { name: 'Rat Catcher', items: ['cage', '10 rat traps', 'sack'] },
+    { name: 'Saboteur', items: ['air bladder', 'crowbar', 'bomb'] },
+    { name: 'Sailor', items: ['beeswax', 'pullies', 'spyglass'] },
+    { name: 'Scout', items: ['signal flags', 'black grease', 'dice'] },
+    { name: 'Scribe', items: ['lamp oil', 'quill/ink', 'sealing wax'] },
+    { name: 'Sculptor', items: ['chisel', 'clay', 'calipers'] },
+    { name: 'Servant', items: ['sponge', 'silverware', 'poker'] },
+    { name: 'Shepherd', items: ['crook', 'instrument', 'sling'] },
+    { name: 'Shipwright', items: ['drill', 'hammer', 'axe'] },
+    { name: 'Singer', items: ['mirror', 'makeup', 'locket'] },
+    { name: 'Smuggler', items: ['pulleys', 'rope', 'makeup'] },
+    { name: 'Soldier', items: ['tent', 'card deck', 'shovel'] },
+    { name: 'Spy', items: ['caltrops', 'poison', 'forged papers'] },
+    { name: 'Squire', items: ['torch', 'armor polish', 'trumpet'] },
+    { name: 'Tailor', items: ['sewing kit', 'scissors', 'soap'] },
+    { name: 'Tattooist', items: ['soot pot', 'needles', '10 candles'] },
+    { name: 'Thieftaker', items: ['bear trap', 'manacles', 'torch'] },
+    { name: 'Thug', items: ['poison', 'knife', 'lamp oil'] },
+    { name: 'Torturer', items: ['drill', 'hourglass', "10' chain"] },
+    { name: 'Trapper', items: ['bear trap', "300' twine", 'bear pelt'] },
+    { name: 'Watchman', items: ['lantern', 'trumpet', 'spear'] },
+    { name: 'Woodcutter', items: ['axe', 'firewood', "50' rope"] }
   ];
   const xpTable = {
     Fighter: [0, 2000, 4000, 8000, 16000, 32000, 64000, 120000, 240000, 360000],
@@ -128,6 +220,7 @@ window.onload = function () {
         '9. Lore Book\n' +
         '(Selecting an option opens a new page)'
     );
+    careerButton.style.display = 'none';
     phase = 'menu';
   }
 
@@ -197,6 +290,35 @@ window.onload = function () {
     }
   });
 
+  careerButton.addEventListener('click', () => {
+    if (phase !== 'chooseCareer') return;
+    const career = careers[Math.floor(Math.random() * careers.length)];
+    currentChar.career = career.name;
+    currentChar.inventory.push(...career.items);
+    printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
+    careerButton.style.display = 'none';
+    currentChar.stats = {
+      STR: rollStat(),
+      DEX: rollStat(),
+      CON: rollStat(),
+      INT: rollStat(),
+      WIS: rollStat(),
+      CHA: rollStat()
+    };
+    const hd = hitDie[currentChar.class] || 6;
+    currentChar.level = 1;
+    currentChar.hp = Math.floor(Math.random() * hd) + 1;
+    currentChar.ac = 9;
+    currentChar.xp = 0;
+    currentChar.nextLevelXP = xpTable[currentChar.class][1];
+    const roll = () => Math.floor(Math.random() * 6) + 1;
+    currentChar.gold = (roll() + roll() + roll()) * 10;
+    printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
+    printMessage(`You have ${currentChar.gold}gp to spend.`);
+    showShop();
+    phase = 'shop';
+  });
+
   function handleInput(text) {
     if (!text) return;
     if (phase === 'enterName') {
@@ -221,30 +343,9 @@ window.onload = function () {
       const idx = parseInt(text) - 1;
       if (alignments[idx]) {
         currentChar.alignment = alignments[idx];
-        const career = careers[Math.floor(Math.random() * careers.length)];
-        currentChar.career = career.name;
-        currentChar.inventory.push(...career.items);
-        printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
-        currentChar.stats = {
-          STR: rollStat(),
-          DEX: rollStat(),
-          CON: rollStat(),
-          INT: rollStat(),
-          WIS: rollStat(),
-          CHA: rollStat()
-        };
-        const hd = hitDie[currentChar.class] || 6;
-        currentChar.level = 1;
-        currentChar.hp = Math.floor(Math.random() * hd) + 1;
-        currentChar.ac = 9;
-        currentChar.xp = 0;
-        currentChar.nextLevelXP = xpTable[currentChar.class][1];
-        const roll = () => Math.floor(Math.random() * 6) + 1;
-        currentChar.gold = (roll() + roll() + roll()) * 10;
-        printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
-        printMessage(`You have ${currentChar.gold}gp to spend.`);
-        showShop();
-        phase = 'shop';
+        printMessage('Click the Roll Career button to get your career.');
+        careerButton.style.display = 'inline-block';
+        phase = 'chooseCareer';
       } else {
         printMessage('Invalid choice.');
       }

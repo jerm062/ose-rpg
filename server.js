@@ -357,6 +357,20 @@ io.on("connection", (socket) => {
     }
   });
 
+  socket.on("fillMap", (value) => {
+    const map = maps[currentMap];
+    if (map) {
+      for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[y].length; x++) {
+          map[y][x] = value;
+        }
+      }
+      saveMaps();
+      if (currentMap === sharedMap) io.emit("mapData", map);
+      else socket.emit("mapData", map);
+    }
+  });
+
   socket.on("getLore", () => {
     const chars = Object.values(savedCharacters).map(
       (c) => `${c.name} - ${c.class}`

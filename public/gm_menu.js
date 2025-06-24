@@ -8,6 +8,7 @@ const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
 const newMapBtn = document.getElementById('newMapBtn');
+const fillMapBtn = document.getElementById('fillMapBtn');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
@@ -468,6 +469,15 @@ newMapBtn.addEventListener('click', () => {
   drawMap();
   display.textContent = 'Editing new map\n0. Return';
   mode = 'editmap';
+});
+
+fillMapBtn.addEventListener('click', () => {
+  if (mode !== 'editmap') return;
+  for (let y = 0; y < mapData.length; y++) {
+    mapData[y].fill(selectedTile);
+  }
+  drawMap();
+  socket.emit('fillMap', selectedTile);
 });
 
 (async () => {
