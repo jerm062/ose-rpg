@@ -19,6 +19,9 @@
     canvas {
       border: 1px solid var(--border);
     }
+    #tilePalette { margin-top: 0.5rem; }
+    .tileBtn { border: 1px solid var(--border); cursor: pointer; margin-right: 2px; }
+    .tileSel { outline: 2px solid red; }
     .char { color: deepskyblue; }
     .location { color: violet; }
     .item { color: gold; }
@@ -41,6 +44,7 @@
   <pre id="readyDisplay"></pre>
   <pre id="logDisplay"></pre>
   <canvas id="hexMap" width="600" height="600" style="display:none"></canvas>
+  <div id="tilePalette" style="display:none"></div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="gm_menu.js"></script>
