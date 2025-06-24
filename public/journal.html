@@ -34,13 +34,19 @@
     const theme = localStorage.getItem('theme') || 'theme-classic.css';
     document.getElementById('themeStylesheet').href = theme;
   </script>
+  <div id="day"></div>
   <pre id="journal">Loading...</pre>
+  <textarea id="entry" rows="3" style="width:100%;"></textarea>
+  <button id="saveBtn">Save Entry</button>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const display = document.getElementById('journal');
+    const entry = document.getElementById('entry');
+    const dayEl = document.getElementById('day');
     const socket = io();
+    const name = localStorage.getItem('characterName') || '';
     function colorize(text) {
       if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
       if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
@@ -53,13 +59,21 @@
         .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
         .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
     }
-    socket.emit('getCampaignLog');
-    socket.on('campaignLog', (log) => {
-      display.innerHTML = log.map(colorize).join('<br>');
+    socket.emit('getJournal', name);
+    socket.emit('getDay');
+    socket.on('journalData', (text) => {
+      display.textContent = text;
     });
-    socket.on('logUpdate', (entry) => {
-      display.innerHTML += '<br>' + colorize(entry);
+    socket.on('journalSaved', () => {
+      socket.emit('getJournal', name);
+      entry.value = '';
     });
+    socket.on('currentDay', (d) => { dayEl.textContent = 'Day: ' + d; });
+    document.getElementById('saveBtn').onclick = () => {
+      if (entry.value.trim()) {
+        socket.emit('addJournalEntry', { name, text: entry.value.trim() });
+      }
+    };
   </script>
 </body>
 </html>
