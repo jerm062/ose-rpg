@@ -15,6 +15,11 @@ Files are organised into persistent folders:
 
 These folders make it safe to update the code without losing your campaign files.
 
+Campaign data is automatically exported to the appropriate subfolders whenever it changes.
+The GM Data Menu now includes an **Export all** option and players can select
+**Export Character** from the main menu to write their character file to
+`data/characters`.
+
 **GM Map Maker**
 - Choose **Map Menu** from the GM interface.
 - Select **New map** for a blank map or **Map list** to load one to edit.
