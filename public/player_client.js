@@ -21,13 +21,32 @@ window.onload = function () {
     { name: 'Urchin', items: ['dagger', 'rat on a string'] }
   ];
   const shopItems = [
+    // Adventuring gear
     { name: 'Rations (1 day)', cost: 5 },
     { name: 'Torch', cost: 1 },
     { name: 'Rope (50ft)', cost: 10 },
     { name: 'Lantern', cost: 10 },
     { name: 'Oil Flask', cost: 2 },
-    { name: 'Dagger', cost: 10 },
     { name: 'Backpack', cost: 5 },
+    { name: 'Waterskin', cost: 1 },
+    { name: 'Bedroll', cost: 5 },
+    { name: 'Grappling Hook', cost: 25 },
+    { name: 'Hammer & Spikes', cost: 3 },
+    { name: 'Mirror (small)', cost: 5 },
+    { name: 'Flint & Steel', cost: 2 },
+    // Weapons
+    { name: 'Dagger', cost: 10 },
+    { name: 'Short Sword', cost: 30 },
+    { name: 'Long Sword', cost: 50 },
+    { name: 'Mace', cost: 15 },
+    { name: 'Spear', cost: 10 },
+    { name: 'Bow', cost: 40 },
+    { name: 'Arrows (20)', cost: 5 },
+    // Armor
+    { name: 'Shield', cost: 10 },
+    { name: 'Leather Armor', cost: 20 },
+    { name: 'Chain Mail', cost: 40 },
+    { name: 'Plate Mail', cost: 60 },
     { name: 'Spellbook', cost: 50 }
   ];
   const spells = ['Magic Missile', 'Shield', 'Sleep', 'Light', 'Charm Person'];
@@ -52,6 +71,9 @@ window.onload = function () {
 
   function showCharacterSheet() {
     const s = currentChar.stats || {};
+    printMessage(
+      `Career: ${currentChar.career}`
+    );
     printMessage(
       `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}`
     );
