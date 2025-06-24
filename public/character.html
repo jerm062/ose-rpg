@@ -58,9 +58,15 @@
     let currentChar = null;
     socket.on('characterLoaded', (charData) => {
       currentChar = charData;
+      if (!currentChar.nameColor) currentChar.nameColor = '#00bfff';
+      if (!currentChar.nameFont) currentChar.nameFont = 'monospace';
       const s = charData.stats || {};
+      const fonts = ['monospace','serif','sans-serif','cursive','fantasy'];
+      const fontOptions = fonts.map(f =>
+        `<option value="${f}"${currentChar.nameFont===f?' selected':''}>${f}</option>`
+      ).join('');
       display.innerHTML =
-        `<strong>${charData.name}</strong><br>` +
+        `<strong id="previewName" style="color:${currentChar.nameColor}; font-family:${currentChar.nameFont}">${charData.name}</strong><br>` +
         `Class: ${charData.class} ${charData.alignment}<br>` +
         `Career: ${charData.career || ''}<br>` +
         `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}<br>` +
@@ -71,11 +77,24 @@
           const enc = encumbrance(charData);
           return `ENC:${enc.slots} MV:${enc.mv}<br>`;
         })() +
+        `Name Color: <input id="colorInput" type="color" value="${currentChar.nameColor}"><br>` +
+        `Name Font: <select id="fontSelect">${fontOptions}</select><br>` +
         `<button id="saveBtn">Save</button>`;
+
+      const colorInput = document.getElementById('colorInput');
+      const fontSelect = document.getElementById('fontSelect');
+      colorInput.oninput = () => {
+        document.getElementById('previewName').style.color = colorInput.value;
+      };
+      fontSelect.onchange = () => {
+        document.getElementById('previewName').style.fontFamily = fontSelect.value;
+      };
 
       document.getElementById('saveBtn').onclick = () => {
         currentChar.hp = parseInt(document.getElementById('hpInput').value, 10);
         currentChar.xp = parseInt(document.getElementById('xpInput').value, 10);
+        currentChar.nameColor = colorInput.value;
+        currentChar.nameFont = fontSelect.value;
         socket.emit('saveCharacter', currentChar);
         alert('Character saved');
       };

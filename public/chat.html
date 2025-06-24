@@ -37,15 +37,33 @@
     const logEl = document.getElementById('log');
     const input = document.getElementById('chatInput');
     const name = localStorage.getItem('characterName') || 'Anon';
+    let charStyles = {};
+
+    socket.emit('loadAllCharacters');
+    socket.on('allCharacters', (chars) => {
+      charStyles = {};
+      for (const [n, data] of Object.entries(chars)) {
+        charStyles[n] = {
+          color: data.nameColor || 'deepskyblue',
+          font: data.nameFont || 'monospace'
+        };
+      }
+    });
+
+    function styledName(n, text) {
+      const style = charStyles[n] || { color: 'deepskyblue', font: 'monospace' };
+      return `<span class="char" style="color:${style.color}; font-family:${style.font}">${text}</span>`;
+    }
 
     function colorize(text) {
-      return text
+      text = text
         .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
         .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
+        .replace(/@([\w ]+)/g, (m, c) => styledName(c, '@' + c))
         .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
         .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
         .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
+      return text.replace(/\[Player\] ([^:]+):/, (m, p1) => `[Player] ${styledName(p1, p1)}:`);
     }
 
     socket.emit('getCampaignLog');

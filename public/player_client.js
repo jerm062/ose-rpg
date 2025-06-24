@@ -258,6 +258,8 @@ window.onload = function () {
   }
 
   function finalizeCharacter() {
+    currentChar.nameColor = '#00bfff';
+    currentChar.nameFont = 'monospace';
     socket.emit('saveCharacter', currentChar);
     printMessage('Character creation complete!');
     phase = 'loading';
@@ -265,6 +267,8 @@ window.onload = function () {
 
   socket.on('characterLoaded', (charData) => {
     currentChar = charData;
+    if (!currentChar.nameColor) currentChar.nameColor = '#00bfff';
+    if (!currentChar.nameFont) currentChar.nameFont = 'monospace';
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     showMenu();
