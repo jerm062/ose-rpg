@@ -1,0 +1,12 @@
+:root {
+  --bg: #000;
+  --fg: #fff;
+  --link: #aaa;
+  --border: #fff;
+  --accent-bg: #000;
+  --accent-fg: #fff;
+}
+body {
+  font-family: "Courier New", monospace;
+  font-size: 14px;
+}

@@ -18,7 +18,7 @@
     }
     canvas {
       border: 1px solid var(--border);
-      background: rgba(0, 0, 0, 0.3);
+      background: black;
     }
     #tilePalette {
       position: fixed;
@@ -51,6 +51,10 @@
   </style>
 </head>
 <body>
+  <script>
+    const theme = localStorage.getItem('theme') || 'theme-classic.css';
+    document.getElementById('themeStylesheet').href = theme;
+  </script>
   <h1>OSE RPG GM Interface</h1>
   <p><a href="index.html">&#x2B05; Back</a></p>
   <pre id="menuDisplay"></pre>

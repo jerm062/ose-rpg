@@ -168,6 +168,44 @@ io.on("connection", (socket) => {
     socket.emit("allCharacters", savedCharacters);
   });
 
+  socket.on("editCharacter", ({ name, data }) => {
+    if (savedCharacters[name]) {
+      savedCharacters[name] = { ...savedCharacters[name], ...data };
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      socket.emit("characterLoaded", savedCharacters[name]);
+    }
+  });
+
+  socket.on("editMap", ({ name, data }) => {
+    if (maps[name]) {
+      maps[name] = data;
+      saveMaps();
+      if (sharedMap === name) io.emit("mapData", maps[name]);
+    }
+  });
+
+  socket.on("editLore", ({ chapter, data }) => {
+    if (lore[chapter]) {
+      lore[chapter] = data;
+      saveLore();
+      io.emit("loreData", {
+        characters: [
+          ...lore.characters,
+          ...Object.values(savedCharacters).map((c) => `${c.name} - ${c.class}`),
+        ],
+        deaths: lore.deaths,
+        events: lore.events,
+        locations: lore.locations,
+      });
+    }
+  });
+
+  socket.on("editLog", (text) => {
+    campaignLog = text.split(/\r?\n/).filter(Boolean);
+    fs.writeFile(LOG_FILE, campaignLog.join("\n"), () => {});
+    io.emit("campaignLog", campaignLog);
+  });
+
   socket.on("setCharIcon", ({ name, icon }) => {
     if (savedCharacters[name]) {
       savedCharacters[name].icon = icon;

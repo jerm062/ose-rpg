@@ -64,7 +64,8 @@ function showMainMenu() {
     '6. Event dialogue\n' +
     '7. Story dialogue\n' +
     '8. Help\n' +
-    '9. Add Lore';
+    '9. Add Lore\n' +
+    '10. Edit Data';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
@@ -96,6 +97,20 @@ function showMapMenu() {
   palette.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'mapMenu';
+}
+
+function showDataMenu() {
+  display.textContent =
+    'Data Menu\n' +
+    '1. Edit character\n' +
+    '2. Edit map\n' +
+    '3. Edit lore\n' +
+    '4. Edit log\n' +
+    '0. Return';
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'dataMenu';
 }
 
 function drawMap() {
@@ -170,6 +185,9 @@ function handleInput(text) {
       case '9':
         display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations';
         mode = 'loreChapter';
+        break;
+      case '10':
+        showDataMenu();
         break;
       default:
         showMainMenu();
@@ -297,6 +315,75 @@ function handleInput(text) {
     const chapter = mode.replace('loreEntry', '').toLowerCase();
     socket.emit('addLore', { chapter, text });
     display.textContent = 'Lore added.';
+    mode = 'help';
+  } else if (mode === 'dataMenu') {
+    switch (text) {
+      case '1':
+        display.textContent = 'Enter character name to edit:';
+        mode = 'editCharName';
+        break;
+      case '2':
+        display.textContent = 'Enter map name to edit:';
+        mode = 'editMapName';
+        break;
+      case '3':
+        display.textContent = 'Enter lore chapter:';
+        mode = 'editLoreChapterInput';
+        break;
+      case '4':
+        display.textContent = 'Enter full log text:';
+        mode = 'editLog';
+        break;
+      case '0':
+        showMainMenu();
+        break;
+      default:
+        showDataMenu();
+    }
+  } else if (mode === 'editCharName') {
+    charNameTemp = text;
+    display.textContent = `Enter JSON patch for ${charNameTemp}:`;
+    mode = 'editCharData';
+  } else if (mode === 'editCharData') {
+    try {
+      const obj = JSON.parse(text);
+      socket.emit('editCharacter', { name: charNameTemp, data: obj });
+      display.textContent = 'Character updated.';
+    } catch (e) {
+      display.textContent = 'Invalid JSON.';
+    }
+    charNameTemp = '';
+    mode = 'help';
+  } else if (mode === 'editMapName') {
+    mapName = text;
+    display.textContent = `Enter map JSON for ${mapName}:`;
+    mode = 'editMapData';
+  } else if (mode === 'editMapData') {
+    try {
+      const obj = JSON.parse(text);
+      socket.emit('editMap', { name: mapName, data: obj });
+      display.textContent = 'Map updated.';
+    } catch (e) {
+      display.textContent = 'Invalid JSON.';
+    }
+    mode = 'help';
+  } else if (mode === 'editLoreChapterInput') {
+    charNameTemp = text.toLowerCase();
+    display.textContent = `Enter JSON array for ${charNameTemp}:`;
+    mode = 'editLoreData';
+  } else if (mode === 'editLoreData') {
+    try {
+      const arr = JSON.parse(text);
+      socket.emit('editLore', { chapter: charNameTemp, data: arr });
+      display.textContent = 'Lore updated.';
+    } catch (e) {
+      display.textContent = 'Invalid JSON.';
+    }
+    charNameTemp = '';
+    mode = 'help';
+  } else if (mode === 'editLog') {
+    socket.emit('editLog', text);
+    display.textContent = 'Log updated.';
     mode = 'help';
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);

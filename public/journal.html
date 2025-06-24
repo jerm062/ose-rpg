@@ -31,7 +31,8 @@
 </head>
 <body>
   <script>
-    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+    const theme = localStorage.getItem('theme') || 'theme-classic.css';
+    document.getElementById('themeStylesheet').href = theme;
   </script>
   <pre id="journal">Loading...</pre>
   <p><a href="player.html">&#x2B05; Back</a></p>
