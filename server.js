@@ -96,6 +96,46 @@ function saveAll() {
   fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
 }
 
+function exportCharacters() {
+  Object.entries(savedCharacters).forEach(([name, data]) => {
+    const file = path.join(CHAR_DIR, `${name}.json`);
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  });
+}
+
+function exportMaps() {
+  Object.entries(maps).forEach(([name, data]) => {
+    const file = path.join(MAP_DIR, `${name}.json`);
+    fs.writeFileSync(file, JSON.stringify(data, null, 2));
+  });
+}
+
+function exportLore() {
+  fs.writeFileSync(
+    path.join(LORE_DIR, 'characters.json'),
+    JSON.stringify(lore.characters, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(LORE_DIR, 'deaths.json'),
+    JSON.stringify(lore.deaths, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(LORE_DIR, 'events.json'),
+    JSON.stringify(lore.events, null, 2)
+  );
+  fs.writeFileSync(
+    path.join(LORE_DIR, 'locations.json'),
+    JSON.stringify(lore.locations, null, 2)
+  );
+}
+
+function exportAll() {
+  exportCharacters();
+  exportMaps();
+  exportLore();
+  fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
@@ -185,13 +225,16 @@ io.on("connection", (socket) => {
     savedCharacters[charData.name] = charData;
     fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
       if (err) console.error("Save error:", err);
+      exportCharacters();
     });
     socket.emit("characterLoaded", charData);
   });
 
   socket.on("deleteCharacter", (name) => {
     delete savedCharacters[name];
-    fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+    fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+      exportCharacters();
+    });
   });
 
   socket.on("loadAllCharacters", () => {
@@ -201,7 +244,9 @@ io.on("connection", (socket) => {
   socket.on("editCharacter", ({ name, data }) => {
     if (savedCharacters[name]) {
       savedCharacters[name] = { ...savedCharacters[name], ...data };
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       socket.emit("characterLoaded", savedCharacters[name]);
     }
   });
@@ -216,7 +261,9 @@ io.on("connection", (socket) => {
       if (gp) {
         c.gold = (c.gold || 0) + gp;
       }
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
     }
   });
 
@@ -225,7 +272,9 @@ io.on("connection", (socket) => {
     if (c && c.status) {
       c.status = c.status.filter((s) => s !== status);
       if (status === "drunk") c.beersDrank = 0;
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       socket.emit("characterLoaded", c);
     }
   });
@@ -238,7 +287,9 @@ io.on("connection", (socket) => {
       if (c.inventory.includes(item) && !c.equipped.includes(item)) {
         c.equipped.push(item);
       }
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       socket.emit("characterLoaded", c);
     }
   });
@@ -248,7 +299,9 @@ io.on("connection", (socket) => {
     if (c && c.equipped) {
       const idx = c.equipped.indexOf(item);
       if (idx !== -1) c.equipped.splice(idx, 1);
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       socket.emit("characterLoaded", c);
     }
   });
@@ -260,7 +313,9 @@ io.on("connection", (socket) => {
       if (idx !== -1) c.inventory.splice(idx, 1);
       const eidx = (c.equipped || []).indexOf(item);
       if (eidx !== -1) c.equipped.splice(eidx, 1);
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       socket.emit("characterLoaded", c);
     }
   });
@@ -269,6 +324,7 @@ io.on("connection", (socket) => {
     if (maps[name]) {
       maps[name] = data;
       saveMaps();
+      exportMaps();
       if (sharedMap === name) io.emit("mapData", maps[name]);
     }
   });
@@ -277,6 +333,7 @@ io.on("connection", (socket) => {
     if (lore[chapter]) {
       lore[chapter] = data;
       saveLore();
+      exportLore();
       io.emit("loreData", {
         characters: [
           ...lore.characters,
@@ -298,7 +355,9 @@ io.on("connection", (socket) => {
   socket.on("setCharIcon", ({ name, icon }) => {
     if (savedCharacters[name]) {
       savedCharacters[name].icon = icon;
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
       const pos = playerPositions[name] || { x: 0, y: 0 };
       playerPositions[name] = { x: pos.x, y: pos.y, icon };
       io.emit("playerPositions", playerPositions);
@@ -355,7 +414,9 @@ io.on("connection", (socket) => {
           char.gold = Math.max(0, (char.gold || 0) - amt);
         }
       }
-      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {
+        exportCharacters();
+      });
     }
 
     let finalMsg = message;
@@ -423,6 +484,7 @@ io.on("connection", (socket) => {
     currentMap = name;
     if (!sharedMap) sharedMap = name;
     saveMaps();
+    exportMaps();
   });
 
   socket.on("deleteMap", (name) => {
@@ -431,6 +493,7 @@ io.on("connection", (socket) => {
       if (sharedMap === name) sharedMap = Object.keys(maps)[0] || null;
       if (currentMap === name) currentMap = sharedMap;
       saveMaps();
+      exportMaps();
     }
   });
 
@@ -438,6 +501,7 @@ io.on("connection", (socket) => {
     if (maps[name]) {
       sharedMap = name;
       saveMaps();
+      exportMaps();
       io.emit("mapData", maps[name]);
     }
   });
@@ -447,6 +511,7 @@ io.on("connection", (socket) => {
     if (map && map[y] && typeof map[y][x] !== "undefined") {
       map[y][x] = value;
       saveMaps();
+      exportMaps();
       if (currentMap === sharedMap) io.emit("mapData", map);
       else socket.emit("mapData", map);
     }
@@ -461,6 +526,7 @@ io.on("connection", (socket) => {
         }
       }
       saveMaps();
+      exportMaps();
       if (currentMap === sharedMap) io.emit("mapData", map);
       else socket.emit("mapData", map);
     }
@@ -482,6 +548,7 @@ io.on("connection", (socket) => {
     if (lore[chapter]) {
       lore[chapter].push(text);
       saveLore();
+      exportLore();
       io.emit("loreData", {
         characters: [
           ...lore.characters,
@@ -507,6 +574,18 @@ io.on("connection", (socket) => {
 
   socket.on("saveAll", () => {
     saveAll();
+    exportAll();
+  });
+
+  socket.on("exportAll", () => {
+    exportAll();
+  });
+
+  socket.on("exportCharacter", (name) => {
+    if (savedCharacters[name]) {
+      const file = path.join(CHAR_DIR, `${name}.json`);
+      fs.writeFile(file, JSON.stringify(savedCharacters[name], null, 2), () => {});
+    }
   });
 
   socket.on("disconnect", () => {

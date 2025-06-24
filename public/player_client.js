@@ -219,6 +219,7 @@ window.onload = function () {
         '7. Spells\n' +
         '8. Save Character\n' +
         '9. Lore Book\n' +
+        '10. Export Character\n' +
         '(Selecting an option opens a new page)'
     );
     careerButton.style.display = 'none';
@@ -426,6 +427,10 @@ window.onload = function () {
           break;
         case '9':
           window.location.href = 'lore.html';
+          break;
+        case '10':
+          socket.emit('exportCharacter', currentChar.name);
+          printMessage('Character exported.');
           break;
         default:
           printMessage('Invalid choice.');
