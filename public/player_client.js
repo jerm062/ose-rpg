@@ -1,1 +1,1 @@
-// working player client script here
+// player_client.js placeholder

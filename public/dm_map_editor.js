@@ -1,1 +1,1 @@
-// working dm_map_editor script here
+// dm_map_editor.js placeholder

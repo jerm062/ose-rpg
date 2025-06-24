@@ -8,20 +8,34 @@
       background: black;
       color: lime;
       font-family: monospace;
+      margin: 0;
+      padding: 1rem;
     }
-    canvas {
-      border: 1px solid lime;
+    #gameDisplay {
+      width: 100%;
+      height: 70vh;
+      background: #000;
+      color: #0f0;
+      font-size: 16px;
+      border: 1px solid #0f0;
+      padding: 1rem;
+      white-space: pre-wrap;
+      overflow-y: auto;
+    }
+    #commandInput {
+      width: 100%;
+      font-size: 16px;
+      padding: 0.5rem;
+      border: 1px solid #0f0;
+      background: black;
+      color: lime;
     }
   </style>
 </head>
 <body>
-  <h1>OSE RPG Player View</h1>
-  <div id="charName"></div>
-  <div id="stats"></div>
-  <div id="inventory"></div>
-  <div id="actions"></div>
-  <pre id="log"></pre>
-  <canvas id="hexMap" width="600" height="400"></canvas>
+  <div id="gameDisplay">Welcome, adventurer!
+Enter your name:</div>
+  <input id="commandInput" placeholder=">" autocomplete="off" autofocus>
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="player_client.js"></script>
