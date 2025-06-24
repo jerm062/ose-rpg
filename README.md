@@ -1,2 +1,2 @@
-# OSE RPG
-Multiplayer retro RPG game inspired by Old School Essentials.
+# OSE RPG Web Game
+Multiplayer text-based adventure powered by Node + Socket.IO.
