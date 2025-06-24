@@ -7,6 +7,8 @@ window.onload = function () {
 
   let phase = 'enterName';
   let currentChar = null;
+  let availableClasses = [];
+  let currentDayStr = '';
 
   const classes = [
     'Fighter',
@@ -41,7 +43,6 @@ window.onload = function () {
     { name: 'Blacksmith', items: ['hammer', 'bellows', 'tongs'] },
     { name: 'Boatman', items: ['10\' pole', 'instrument', 'paddle'] },
     { name: 'Bookbinder', items: ['sewing kit', 'glue', 'quill/ink'] },
-    { name: 'Brewer', items: ['mash paddle', 'beer keg', 'hops'] },
     { name: 'Burglar', items: ['lockpicks', 'grappling hook', 'rope'] },
     { name: 'Butcher', items: ['cleaver', 'meat hook', 'bacon'] },
     { name: 'Candlemaker', items: ['10 candles', 'lamp oil', 'wax'] },
@@ -153,34 +154,84 @@ window.onload = function () {
     Paladin: 8,
     Ranger: 8
   };
-  const shopItems = [
-    // Adventuring gear
-    { name: 'Rations (1 day)', cost: 5 },
-    { name: 'Torch', cost: 1 },
-    { name: 'Rope (50ft)', cost: 10 },
-    { name: 'Lantern', cost: 10 },
-    { name: 'Oil Flask', cost: 2 },
+  const classReqs = {
+    Fighter: {},
+    Cleric: { WIS: 9 },
+    'Magic-User': { INT: 9 },
+    Thief: { DEX: 9 },
+    Assassin: { STR: 9, DEX: 9 },
+    Barbarian: { STR: 9, CON: 9 },
+    Bard: { DEX: 9, CHA: 9 },
+    Druid: { WIS: 9 },
+    Illusionist: { INT: 9 },
+    Knight: { STR: 9, CHA: 9 },
+    Paladin: { STR: 9, CHA: 9 },
+    Ranger: { STR: 9, WIS: 9, CON: 9 }
+  };
+
+  const weaponAllowed = {
+    'Magic-User': ['Dagger', 'Staff'],
+    Cleric: ['Mace', 'War Hammer', 'Club', 'Staff'],
+    Thief: ['Dagger', 'Short Sword', 'Long Sword', 'Sling', 'Bow', 'Crossbow', 'Club', 'Hand Axe'],
+    Assassin: ['Dagger', 'Short Sword', 'Long Sword', 'Sling', 'Bow', 'Crossbow', 'Club', 'Hand Axe'],
+    Bard: ['Dagger', 'Short Sword', 'Long Sword', 'Sling', 'Bow', 'Crossbow', 'Club'],
+    Druid: ['Club', 'Staff', 'Dagger', 'Spear'],
+    Illusionist: ['Dagger', 'Staff']
+  };
+
+  const armorAllowed = {
+    'Magic-User': [],
+    Thief: ['Leather Armor'],
+    Assassin: ['Leather Armor'],
+    Bard: ['Leather Armor', 'Chain Mail'],
+    Druid: ['Leather Armor', 'Shield'],
+    Illusionist: [],
+    Cleric: ['Leather Armor', 'Chain Mail', 'Plate Mail', 'Shield']
+  };
+
+  const gearItems = [
     { name: 'Backpack', cost: 5 },
-    { name: 'Waterskin', cost: 1 },
     { name: 'Bedroll', cost: 5 },
-    { name: 'Grappling Hook', cost: 25 },
-    { name: 'Hammer & Spikes', cost: 3 },
-    { name: 'Mirror (small)', cost: 5 },
+    { name: 'Candle', cost: 1 },
+    { name: 'Chain (10 ft)', cost: 30 },
+    { name: 'Chalk (1 piece)', cost: 1 },
+    { name: 'Crowbar', cost: 10 },
+    { name: 'Oil Flask', cost: 2 },
     { name: 'Flint & Steel', cost: 2 },
-    // Weapons
-    { name: 'Dagger', cost: 10 },
-    { name: 'Short Sword', cost: 30 },
-    { name: 'Long Sword', cost: 50 },
-    { name: 'Mace', cost: 15 },
-    { name: 'Spear', cost: 10 },
-    { name: 'Bow', cost: 40 },
-    { name: 'Arrows (20)', cost: 5 },
-    // Armor
-    { name: 'Shield', cost: 10 },
-    { name: 'Leather Armor', cost: 20 },
-    { name: 'Chain Mail', cost: 40 },
-    { name: 'Plate Mail', cost: 60 },
-    { name: 'Spellbook', cost: 50 }
+    { name: 'Grappling Hook', cost: 25 },
+    { name: 'Hammer', cost: 2 },
+    { name: 'Holy Water', cost: 25 },
+    { name: 'Iron Spikes (12)', cost: 1 },
+    { name: 'Lantern', cost: 10 },
+    { name: 'Mirror (small)', cost: 5 },
+    { name: 'Pole (10 ft)', cost: 1 },
+    { name: 'Rations (1 day)', cost: 5 },
+    { name: 'Rope (50 ft)', cost: 10 },
+    { name: 'Sack (large)', cost: 1 },
+    { name: 'Torch', cost: 1 },
+    { name: 'Waterskin', cost: 1 }
+  ];
+
+  const weaponArmorItems = [
+    { name: 'Club', cost: 1, type: 'weapon' },
+    { name: 'Dagger', cost: 10, type: 'weapon' },
+    { name: 'Hand Axe', cost: 4, type: 'weapon' },
+    { name: 'Mace', cost: 15, type: 'weapon' },
+    { name: 'Spear', cost: 10, type: 'weapon' },
+    { name: 'Short Sword', cost: 30, type: 'weapon' },
+    { name: 'Long Sword', cost: 50, type: 'weapon' },
+    { name: 'Two-Handed Sword', cost: 75, type: 'weapon' },
+    { name: 'Polearm', cost: 7, type: 'weapon' },
+    { name: 'Bow', cost: 40, type: 'weapon' },
+    { name: 'Crossbow', cost: 30, type: 'weapon' },
+    { name: 'Arrows (20)', cost: 5, type: 'weapon' },
+    { name: 'Quarrels (30)', cost: 10, type: 'weapon' },
+    { name: 'Sling', cost: 2, type: 'weapon' },
+    { name: 'Shield', cost: 10, type: 'armor' },
+    { name: 'Leather Armor', cost: 20, type: 'armor' },
+    { name: 'Chain Mail', cost: 40, type: 'armor' },
+    { name: 'Plate Mail', cost: 60, type: 'armor' },
+    { name: 'Spellbook', cost: 50, type: 'special' }
   ];
   const spells = ['Magic Missile', 'Shield', 'Sleep', 'Light', 'Charm Person'];
 
@@ -208,7 +259,8 @@ window.onload = function () {
 
   function showMenu() {
     printMessage(
-      'Main Menu\n' +
+      `Day: ${currentDayStr}\n` +
+        'Main Menu\n' +
         '1. Character Sheet\n' +
         '2. Items\n' +
         '3. Map\n' +
@@ -297,14 +349,6 @@ window.onload = function () {
     currentChar.inventory.push(...career.items);
     printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
     careerButton.style.display = 'none';
-    currentChar.stats = {
-      STR: rollStat(),
-      DEX: rollStat(),
-      CON: rollStat(),
-      INT: rollStat(),
-      WIS: rollStat(),
-      CHA: rollStat()
-    };
     const hd = hitDie[currentChar.class] || 6;
     currentChar.level = 1;
     currentChar.hp = Math.floor(Math.random() * hd) + 1;
@@ -313,10 +357,9 @@ window.onload = function () {
     currentChar.nextLevelXP = xpTable[currentChar.class][1];
     const roll = () => Math.floor(Math.random() * 6) + 1;
     currentChar.gold = (roll() + roll() + roll()) * 10;
-    printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
     printMessage(`You have ${currentChar.gold}gp to spend.`);
-    showShop();
-    phase = 'shop';
+    showShopMenu();
+    phase = 'shopMenu';
   });
 
   function handleInput(text) {
@@ -324,26 +367,41 @@ window.onload = function () {
     if (phase === 'enterName') {
       socket.emit('loadCharacter', text);
       phase = 'loading';
-    } else if (phase === 'newName') {
+  } else if (phase === 'newName') {
       currentChar = { name: text, inventory: [], equipped: [] };
+      currentChar.stats = {
+        STR: rollStat(),
+        DEX: rollStat(),
+        CON: rollStat(),
+        INT: rollStat(),
+        WIS: rollStat(),
+        CHA: rollStat()
+      };
+      printMessage(
+        `Stats: STR ${currentChar.stats.STR} DEX ${currentChar.stats.DEX} CON ${currentChar.stats.CON} INT ${currentChar.stats.INT} WIS ${currentChar.stats.WIS} CHA ${currentChar.stats.CHA}`
+      );
+      availableClasses = classes.filter((c) => {
+        const req = classReqs[c] || {};
+        return Object.entries(req).every(([k, v]) => currentChar.stats[k] >= v);
+      });
       printMessage(`Hello ${text}! Choose a class:`);
-      classes.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
+      availableClasses.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
       printMessage('Type the number to select or number followed by A for info.');
       phase = 'chooseClass';
     } else if (phase === 'chooseClass') {
       const infoMatch = text.match(/^(\d+)a$/i);
       if (infoMatch) {
         const i = parseInt(infoMatch[1]) - 1;
-        if (classes[i]) {
-          window.open(`classinfo.html?c=${encodeURIComponent(classes[i])}`, '_blank');
+        if (availableClasses[i]) {
+          window.open(`classinfo.html?c=${encodeURIComponent(availableClasses[i])}`, '_blank');
         } else {
           printMessage('Invalid choice.');
         }
         return;
       }
       const idx = parseInt(text) - 1;
-      if (classes[idx]) {
-        currentChar.class = classes[idx];
+      if (availableClasses[idx]) {
+        currentChar.class = availableClasses[idx];
         printMessage('Choose an alignment:');
         alignments.forEach((a, i) => printMessage(`${i + 1}. ${a}`));
         phase = 'chooseAlignment';
@@ -360,8 +418,14 @@ window.onload = function () {
       } else {
         printMessage('Invalid choice.');
       }
-    } else if (phase === 'shop') {
-      if (text === '0') {
+    } else if (phase === 'shopMenu') {
+      if (text === '1') {
+        showGear();
+        phase = 'shopGear';
+      } else if (text === '2') {
+        showWeapons();
+        phase = 'shopWeapons';
+      } else if (text === '0') {
         if (currentChar.class === 'Magic-User') {
           printMessage('Choose a starting spell:');
           spells.forEach((s, i) => printMessage(`${i + 1}. ${s}`));
@@ -369,10 +433,36 @@ window.onload = function () {
         } else {
           finalizeCharacter();
         }
+      } else {
+        printMessage('Invalid choice.');
+      }
+    } else if (phase === 'shopGear') {
+      if (text === '0') {
+        showShopMenu();
+        phase = 'shopMenu';
         return;
       }
       const idx = parseInt(text) - 1;
-      const item = shopItems[idx];
+      const item = gearItems[idx];
+      if (item) {
+        if (currentChar.gold >= item.cost) {
+          currentChar.gold -= item.cost;
+          currentChar.inventory.push(item.name);
+          printMessage(`Purchased ${item.name}. Gold left: ${currentChar.gold}`);
+        } else {
+          printMessage('Not enough gold.');
+        }
+      } else {
+        printMessage('Invalid item.');
+      }
+    } else if (phase === 'shopWeapons') {
+      if (text === '0') {
+        showShopMenu();
+        phase = 'shopMenu';
+        return;
+      }
+      const idx = parseInt(text) - 1;
+      const item = weaponListCurrent[idx];
       if (item) {
         if (currentChar.gold >= item.cost) {
           currentChar.gold -= item.cost;
@@ -447,9 +537,32 @@ window.onload = function () {
     }
   }
 
-  function showShop() {
-    printMessage('Shop - enter item number to buy, or 0 to finish:');
-    shopItems.forEach((it, i) => printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`));
+  let weaponListCurrent = [];
+
+  function canUse(item) {
+    if (item.type === 'weapon') {
+      const allow = weaponAllowed[currentChar.class];
+      return !allow || allow === 'ANY' || allow.includes(item.name);
+    } else if (item.type === 'armor') {
+      const allow = armorAllowed[currentChar.class];
+      return !allow || allow === 'ANY' || allow.includes(item.name);
+    }
+    return true;
+  }
+
+  function showShopMenu() {
+    printMessage('Shop\n1. Adventuring Gear\n2. Weapons & Armor\n0. Finish');
+  }
+
+  function showGear() {
+    printMessage('Adventuring Gear - 0 to return');
+    gearItems.forEach((it, i) => printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`));
+  }
+
+  function showWeapons() {
+    weaponListCurrent = weaponArmorItems.filter(canUse);
+    printMessage('Weapons & Armor - 0 to return');
+    weaponListCurrent.forEach((it, i) => printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`));
   }
 
   function finalizeCharacter() {
@@ -475,6 +588,10 @@ window.onload = function () {
 
   socket.on('logUpdate', (entry) => {
     printMessage(entry);
+  });
+
+  socket.on('currentDay', (d) => {
+    currentDayStr = d;
   });
 
   socket.on('mapData', (data) => {

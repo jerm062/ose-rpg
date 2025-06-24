@@ -25,6 +25,13 @@ const LORE_DIR = path.join(DATA_DIR, 'lore');
   if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 });
 
+// Journals and calendar tracking
+const JOURNAL_DIR = path.join(DATA_DIR, 'journals');
+const DAY_FILE = path.join(DATA_DIR, 'day.json');
+[JOURNAL_DIR].forEach((dir) => {
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+});
+
 const CHAR_FILE = path.join(CHAR_DIR, 'player_data.json');
 const LOG_FILE = path.join(CHAT_DIR, 'campaign_log.txt');
 const MAP_FILE = path.join(MAP_DIR, 'map_data.json');
@@ -38,6 +45,38 @@ let currentMap = null;
 let savedCharacters = {};
 let lore = { characters: [], deaths: [], events: [], locations: [] };
 let sharedText = "Welcome to the campaign.";
+
+// Calendar
+const MONTHS = [
+  'early spring',
+  'late spring',
+  'early summer',
+  'later summer',
+  'early fall',
+  'late fall',
+  'early winter',
+  'later winter'
+];
+const MONTH_DAYS = [31, 31, 31, 33, 31, 31, 31, 31];
+let currentDay = { month: 0, day: 1 };
+if (fs.existsSync(DAY_FILE)) {
+  try {
+    currentDay = JSON.parse(fs.readFileSync(DAY_FILE));
+  } catch (e) {}
+} else {
+  // Create the initial day file on first run
+  fs.writeFileSync(DAY_FILE, JSON.stringify(currentDay));
+}
+
+function saveDay() {
+  fs.writeFileSync(DAY_FILE, JSON.stringify(currentDay));
+}
+
+function formatDay() {
+  const d = currentDay.day;
+  const suffix = d === 1 ? 'st' : d === 2 ? 'nd' : d === 3 ? 'rd' : 'th';
+  return `${d}${suffix} of ${MONTHS[currentDay.month]}`;
+}
 
 // Ensure base data files exist
 if (!fs.existsSync(CHAR_FILE)) fs.writeFileSync(CHAR_FILE, '{}');
@@ -89,6 +128,15 @@ function saveLore() {
   fs.writeFile(LORE_FILE, JSON.stringify(lore, null, 2), () => {});
 }
 
+function advanceDay() {
+  currentDay.day += 1;
+  if (currentDay.day > MONTH_DAYS[currentDay.month]) {
+    currentDay.day = 1;
+    currentDay.month = (currentDay.month + 1) % MONTHS.length;
+  }
+  saveDay();
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
@@ -133,6 +181,7 @@ app.get('/', (req, res) => {
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
+  socket.emit("currentDay", formatDay());
 
   socket.on("registerPlayer", (name) => {
     playerNames[socket.id] = name;
@@ -407,6 +456,30 @@ io.on("connection", (socket) => {
         locations: lore.locations,
       });
     }
+  });
+
+  socket.on("getJournal", (name) => {
+    const file = path.join(JOURNAL_DIR, `${name}.txt`);
+    let text = "";
+    if (fs.existsSync(file)) {
+      try { text = fs.readFileSync(file, "utf8"); } catch (e) {}
+    }
+    socket.emit("journalData", text);
+  });
+
+  socket.on("addJournalEntry", ({ name, text }) => {
+    const file = path.join(JOURNAL_DIR, `${name}.txt`);
+    fs.appendFile(file, text.trim() + "\n", () => {});
+    socket.emit("journalSaved");
+  });
+
+  socket.on("getDay", () => {
+    socket.emit("currentDay", formatDay());
+  });
+
+  socket.on("advanceDay", () => {
+    advanceDay();
+    io.emit("currentDay", formatDay());
   });
 
   socket.on("getSharedText", () => {
