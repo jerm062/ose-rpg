@@ -25,6 +25,9 @@
     .spell { color: orchid; }
     .monster { color: tomato; }
     .gold { color: khaki; }
+    .gmchar { color: lightgreen; }
+    .gmevent { color: orange; }
+    .gmstory { color: plum; }
   </style>
 </head>
 <body>
@@ -51,6 +54,9 @@
     const display = document.getElementById('journal');
     const socket = io();
     function colorize(text) {
+      if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
+      if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
+      if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
       return text
         .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
         .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')

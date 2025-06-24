@@ -162,6 +162,27 @@ io.on("connection", (socket) => {
     io.emit("logUpdate", entry);
   });
 
+  socket.on("gmChar", (message) => {
+    const entry = `[CHAR] ${message}`;
+    campaignLog.push(entry);
+    fs.appendFile(LOG_FILE, entry + "\n", () => {});
+    io.emit("logUpdate", entry);
+  });
+
+  socket.on("gmEvent", (message) => {
+    const entry = `[EVENT] ${message}`;
+    campaignLog.push(entry);
+    fs.appendFile(LOG_FILE, entry + "\n", () => {});
+    io.emit("logUpdate", entry);
+  });
+
+  socket.on("gmStory", (message) => {
+    const entry = `[STORY] ${message}`;
+    campaignLog.push(entry);
+    fs.appendFile(LOG_FILE, entry + "\n", () => {});
+    io.emit("logUpdate", entry);
+  });
+
   socket.on("getCampaignLog", () => {
     socket.emit("campaignLog", campaignLog);
   });

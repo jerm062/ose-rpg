@@ -26,6 +26,9 @@
     .spell { color: orchid; }
     .monster { color: tomato; }
     .gold { color: khaki; }
+    .gmchar { color: lightgreen; }
+    .gmevent { color: orange; }
+    .gmstory { color: plum; }
     input { width: 100%; font-size: 18px; margin-top: 0.5rem; background: var(--accent-bg); color: var(--accent-fg); border: 1px solid var(--border); }
     #themeSelect { margin-bottom: 0.5rem; }
   </style>
@@ -60,6 +63,9 @@
     const name = localStorage.getItem('characterName') || 'Anon';
 
     function colorize(text) {
+      if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
+      if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
+      if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
       return text
         .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
         .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
