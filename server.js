@@ -9,10 +9,17 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
-const CHAR_FILE = path.join(__dirname, 'player_data.json');
-const LOG_FILE = path.join(__dirname, 'campaign_log.txt');
-const MAP_FILE = path.join(__dirname, 'map_data.json');
-const LORE_FILE = path.join(__dirname, 'lore.json');
+
+// Persist user generated content under the data directory
+const DATA_DIR = path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) {
+  fs.mkdirSync(DATA_DIR);
+}
+
+const CHAR_FILE = path.join(DATA_DIR, 'player_data.json');
+const LOG_FILE = path.join(DATA_DIR, 'campaign_log.txt');
+const MAP_FILE = path.join(DATA_DIR, 'map_data.json');
+const LORE_FILE = path.join(DATA_DIR, 'lore.json');
 
 let campaignLog = [];
 let maps = {};

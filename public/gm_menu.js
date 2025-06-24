@@ -332,7 +332,13 @@ socket.emit('saveMap', { name, data: mapData });
 newMapBtn.addEventListener('click', () => {
   mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
   mapName = '';
+  buildPalette();
+  mapNameInput.value = '';
+  mapControls.style.display = 'block';
+  palette.style.display = 'block';
   drawMap();
+  display.textContent = 'Editing new map\n0. Return';
+  mode = 'editmap';
 });
 
 (async () => {

@@ -35,32 +35,17 @@
       background: var(--accent-bg);
       color: var(--accent-fg);
     }
-    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+  </script>
   <div id="gameDisplay">Welcome, adventurer!
 Enter your name:</div>
   <input id="commandInput" placeholder=">" autocomplete="off" autofocus>
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="player_client.js"></script>
-  <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
-  </script>
 </body>
 </html>

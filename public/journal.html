@@ -18,7 +18,6 @@
     }
     a { color: var(--link); }
     pre { white-space: pre-wrap; }
-    #themeSelect { margin-bottom: 0.5rem; }
     .char { color: deepskyblue; }
     .location { color: violet; }
     .item { color: gold; }
@@ -31,26 +30,14 @@
   </style>
 </head>
 <body>
-  <label for="themeSelect">Theme:</label>
-  <select id="themeSelect">
-    <option value="classic">Classic</option>
-    <option value="bw">Black & White</option>
-    <option value="modern">Modern</option>
-  </select>
+  <script>
+    document.getElementById('themeStylesheet').href = 'theme-classic.css';
+  </script>
   <pre id="journal">Loading...</pre>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const sel = document.getElementById('themeSelect');
-    const saved = localStorage.getItem('theme') || 'classic';
-    sel.value = saved;
-    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
-    sel.onchange = () => {
-      const t = sel.value;
-      localStorage.setItem('theme', t);
-      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
-    };
     const display = document.getElementById('journal');
     const socket = io();
     function colorize(text) {
