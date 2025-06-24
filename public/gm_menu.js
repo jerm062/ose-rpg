@@ -4,10 +4,13 @@ const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
+const mapControls = document.getElementById('mapControls');
+const mapNameInput = document.getElementById('mapName');
+const saveMapBtn = document.getElementById('saveMapBtn');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
-let mode = 'menu';
+let mode = 'main';
 let mapData = [];
 let mapName = '';
 let selectedTile = '#';
@@ -44,25 +47,47 @@ function colorize(text) {
     .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
 }
 
-function showMenu() {
+function showMainMenu() {
   display.textContent =
     'GM Menu\n' +
-    '1. List characters\n' +
-    '2. Delete character\n' +
+    '1. Character Menu\n' +
+    '2. Map Menu\n' +
     '3. Campaign log\n' +
     '4. Send DM message\n' +
-    '5. View map\n' +
-    '6. Edit map\n' +
-    '7. Help\n' +
-    '8. Save map\n' +
-    '9. Load map\n' +
-    '10. Delete map\n' +
-    '11. Share map\n' +
-    '12. Save character\n' +
-    '0. Return to menu';
+    '5. Help';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  mode = 'menu';
+  mapControls.style.display = 'none';
+  mode = 'main';
+}
+
+function showCharMenu() {
+  display.textContent =
+    'Character Menu\n' +
+    '1. List characters\n' +
+    '2. Delete character\n' +
+    '3. Save character\n' +
+    '0. Return';
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'charMenu';
+}
+
+function showMapMenu() {
+  display.textContent =
+    'Map Menu\n' +
+    '1. View map\n' +
+    '2. Edit map\n' +
+    '3. Save map\n' +
+    '4. Load map\n' +
+    '5. Delete map\n' +
+    '6. Share map\n' +
+    '0. Return';
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'mapMenu';
 }
 
 function drawMap() {
@@ -87,14 +112,13 @@ input.addEventListener('keydown', (ev) => {
 });
 
 function handleInput(text) {
-  if (mode === 'menu') {
+  if (mode === 'main') {
     switch (text) {
       case '1':
-        socket.emit('loadAllCharacters');
+        showCharMenu();
         break;
       case '2':
-        display.textContent = 'Enter character name to delete:';
-        mode = 'delete';
+        showMapMenu();
         break;
       case '3':
         socket.emit('getCampaignLog');
@@ -105,77 +129,105 @@ function handleInput(text) {
         mode = 'dmmsg';
         break;
       case '5':
-        mapName = 'shared';
-        socket.emit('getMap');
-        mode = 'viewmap';
-        break;
-      case '6':
-        mapName = 'shared';
-        socket.emit('getMap');
-        buildPalette();
-        mode = 'editmap';
-        break;
-      case '7':
         display.textContent =
           'GM Help:\n/ready players send /ready or /unready in chat to toggle status.' +
           '\nUse menu numbers to access tools.\n0. Return';
         mode = 'help';
         break;
-      case '8':
-        display.textContent = 'Enter name to save current map:';
-        mode = 'savemap';
+      default:
+        showMainMenu();
+    }
+  } else if (mode === 'charMenu') {
+    switch (text) {
+      case '1':
+        socket.emit('loadAllCharacters');
         break;
-      case '9':
-        socket.emit('getMapList');
-        mode = 'loadmaplist';
+      case '2':
+        display.textContent = 'Enter character name to delete:';
+        mode = 'delete';
         break;
-      case '10':
-        socket.emit('getMapList');
-        mode = 'deletemaplist';
-        break;
-      case '11':
-        socket.emit('getMapList');
-        mode = 'sharemaplist';
-        break;
-      case '12':
+      case '3':
         display.textContent = 'Enter character JSON:';
         mode = 'savechar';
         break;
+      case '0':
+        showMainMenu();
+        break;
       default:
-        showMenu();
+        showCharMenu();
+    }
+  } else if (mode === 'mapMenu') {
+    switch (text) {
+      case '1':
+        mapName = 'shared';
+        socket.emit('getMap');
+        mode = 'viewmap';
+        break;
+      case '2':
+        mapName = 'shared';
+        socket.emit('getMap');
+        buildPalette();
+        mapNameInput.value = mapName;
+        mapControls.style.display = 'block';
+        mode = 'editmap';
+        break;
+      case '3':
+        display.textContent = 'Enter name to save current map:';
+        mode = 'savemap';
+        break;
+      case '4':
+        socket.emit('getMapList');
+        mode = 'loadmaplist';
+        break;
+      case '5':
+        socket.emit('getMapList');
+        mode = 'deletemaplist';
+        break;
+      case '6':
+        socket.emit('getMapList');
+        mode = 'sharemaplist';
+        break;
+      case '0':
+        showMainMenu();
+        break;
+      default:
+        showMapMenu();
     }
   } else if (mode === 'delete') {
     socket.emit('deleteCharacter', text);
-    showMenu();
+    showMainMenu();
   } else if (mode === 'dmmsg') {
     socket.emit('dmMessage', text);
-    showMenu();
+    showMainMenu();
   } else if (mode === 'log') {
-    if (text === '0') showMenu();
+    if (text === '0') showMainMenu();
   } else if (mode === 'viewmap' || mode === 'editmap') {
     if (text === '0') {
-      showMenu();
+      showMainMenu();
       palette.style.display = 'none';
+      mapControls.style.display = 'none';
     }
   } else if (mode === 'help') {
     if (text === '0') {
-      showMenu();
+      showMainMenu();
     }
   } else if (mode === 'savemap') {
     mapName = text;
     socket.emit('saveMap', { name: text, data: mapData });
-    showMenu();
+    showMainMenu();
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
     buildPalette();
+    mapNameInput.value = mapName;
+    mapControls.style.display = 'block';
     mode = 'editmap';
   } else if (mode === 'deletemap') {
     socket.emit('deleteMap', text);
-    showMenu();
+    showMainMenu();
   } else if (mode === 'sharemap') {
     socket.emit('shareMap', text);
-    showMenu();
+    showMainMenu();
   } else if (mode === 'savechar') {
     try {
       const obj = JSON.parse(text);
@@ -207,6 +259,8 @@ socket.on('mapData', (data) => {
     display.textContent = `Viewing map: ${mapName}\n0. Return`;
   } else if (mode === 'editmap') {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
+    mapNameInput.value = mapName;
+    mapControls.style.display = 'block';
   }
 });
 
@@ -234,5 +288,11 @@ canvas.addEventListener('click', (ev) => {
   }
 });
 
-showMenu();
+saveMapBtn.addEventListener('click', () => {
+  const name = mapNameInput.value.trim() || mapName || 'unnamed';
+  mapName = name;
+  socket.emit('saveMap', { name, data: mapData });
+});
+
+showMainMenu();
 input.focus();
