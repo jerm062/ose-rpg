@@ -85,6 +85,10 @@ function saveLore() {
 if (fs.existsSync(CHAR_FILE)) {
   try {
     savedCharacters = JSON.parse(fs.readFileSync(CHAR_FILE));
+    Object.values(savedCharacters).forEach((c) => {
+      c.inventory = c.inventory || [];
+      c.equipped = c.equipped || [];
+    });
   } catch (err) {
     console.error("Error reading character file:", err);
   }
@@ -145,13 +149,18 @@ io.on("connection", (socket) => {
 
   socket.on("loadCharacter", (name) => {
     if (savedCharacters[name]) {
-      socket.emit("characterLoaded", savedCharacters[name]);
+      const c = savedCharacters[name];
+      c.inventory = c.inventory || [];
+      c.equipped = c.equipped || [];
+      socket.emit("characterLoaded", c);
     } else {
       socket.emit("characterNotFound");
     }
   });
 
   socket.on("saveCharacter", (charData) => {
+    charData.inventory = charData.inventory || [];
+    charData.equipped = charData.equipped || [];
     savedCharacters[charData.name] = charData;
     fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
       if (err) console.error("Save error:", err);
@@ -239,7 +248,13 @@ io.on("connection", (socket) => {
           (it) => it.toLowerCase() === itemName
         );
         if (idx !== -1) {
-          char.inventory.splice(idx, 1);
+          const removed = char.inventory.splice(idx, 1)[0];
+          const eqIdx = (char.equipped || []).findIndex(
+            (it) => it.toLowerCase() === itemName
+          );
+          if (eqIdx !== -1) {
+            char.equipped.splice(eqIdx, 1);
+          }
         }
       }
 
