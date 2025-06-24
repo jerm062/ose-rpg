@@ -36,9 +36,8 @@ window.onload = function () {
       currentChar = { name: text };
       socket.emit('saveCharacter', currentChar);
       printMessage(`Created new character ${text}.`);
-      localStorage.setItem('characterName', currentChar.name);
-      phase = 'playing';
-      } else if (phase === 'playing') {
+      phase = 'loading';
+    } else if (phase === 'playing') {
         printMessage('> ' + text);
         socket.emit('playerMessage', { name: currentChar.name, message: text });
       }

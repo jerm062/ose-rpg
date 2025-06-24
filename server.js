@@ -69,6 +69,7 @@ io.on("connection", (socket) => {
     fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
       if (err) console.error("Save error:", err);
     });
+    socket.emit("characterLoaded", charData);
   });
 
   socket.on("deleteCharacter", (name) => {
