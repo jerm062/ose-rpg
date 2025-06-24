@@ -7,6 +7,7 @@ const palette = document.getElementById('tilePalette');
 const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
+const newMapBtn = document.getElementById('newMapBtn');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
@@ -38,6 +39,9 @@ function buildPalette() {
 }
 
 function colorize(text) {
+  if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
+  if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
+  if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
   return text
     .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
     .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
@@ -54,7 +58,10 @@ function showMainMenu() {
     '2. Map Menu\n' +
     '3. Campaign log\n' +
     '4. Send DM message\n' +
-    '5. Help';
+    '5. Character dialogue\n' +
+    '6. Event dialogue\n' +
+    '7. Story dialogue\n' +
+    '8. Help';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
@@ -129,6 +136,18 @@ function handleInput(text) {
         mode = 'dmmsg';
         break;
       case '5':
+        display.textContent = 'Enter character dialogue:';
+        mode = 'chard';
+        break;
+      case '6':
+        display.textContent = 'Enter event dialogue:';
+        mode = 'eventd';
+        break;
+      case '7':
+        display.textContent = 'Enter story dialogue:';
+        mode = 'storyd';
+        break;
+      case '8':
         display.textContent =
           'GM Help:\n/ready players send /ready or /unready in chat to toggle status.' +
           '\nUse menu numbers to access tools.\n0. Return';
@@ -198,6 +217,15 @@ function handleInput(text) {
     showMainMenu();
   } else if (mode === 'dmmsg') {
     socket.emit('dmMessage', text);
+    showMainMenu();
+  } else if (mode === 'chard') {
+    socket.emit('gmChar', text);
+    showMainMenu();
+  } else if (mode === 'eventd') {
+    socket.emit('gmEvent', text);
+    showMainMenu();
+  } else if (mode === 'storyd') {
+    socket.emit('gmStory', text);
     showMainMenu();
   } else if (mode === 'log') {
     if (text === '0') showMainMenu();
@@ -291,7 +319,13 @@ canvas.addEventListener('click', (ev) => {
 saveMapBtn.addEventListener('click', () => {
   const name = mapNameInput.value.trim() || mapName || 'unnamed';
   mapName = name;
-  socket.emit('saveMap', { name, data: mapData });
+socket.emit('saveMap', { name, data: mapData });
+});
+
+newMapBtn.addEventListener('click', () => {
+  mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
+  mapName = '';
+  drawMap();
 });
 
 (async () => {

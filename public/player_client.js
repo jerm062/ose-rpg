@@ -90,6 +90,7 @@ window.onload = function () {
         '5. Journal\n' +
         '6. Help\n' +
         '7. Spells\n' +
+        '8. Save Character\n' +
         '(Selecting an option opens a new page)'
     );
     phase = 'menu';
@@ -262,6 +263,10 @@ window.onload = function () {
           break;
         case '7':
           window.location.href = 'spells.html';
+          break;
+        case '8':
+          socket.emit('saveCharacter', currentChar);
+          printMessage('Character saved.');
           break;
         default:
           printMessage('Invalid choice.');
