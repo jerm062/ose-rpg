@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Items</title>
+  <title>Spells</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
   <style>
     body {
@@ -27,7 +27,7 @@
     <option value="bw">Black & White</option>
     <option value="modern">Modern</option>
   </select>
-  <pre id="itemsDisplay">Loading...</pre>
+  <pre id="spellDisplay">Loading...</pre>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -41,7 +41,7 @@
       localStorage.setItem('theme', t);
       document.getElementById('themeStylesheet').href = `theme-${t}.css`;
     };
-    const display = document.getElementById('itemsDisplay');
+    const display = document.getElementById('spellDisplay');
     const socket = io();
     const name = localStorage.getItem('characterName');
     if (name) {
@@ -49,27 +49,8 @@
     } else {
       display.textContent = 'No character found.';
     }
-    function encumbrance(char) {
-      let slots = (char.inventory || []).length;
-      const coins = char.gold || 0;
-      slots += Math.ceil(coins / 100);
-      if ((char.inventory || []).includes('Plate Mail')) slots += 5;
-      if ((char.inventory || []).includes('Chain Mail')) slots += 4;
-      if ((char.inventory || []).includes('Leather Armor')) slots += 2;
-      if ((char.inventory || []).includes('Shield')) slots += 1;
-      let mv;
-      if (slots <= 5) mv = '120\'';
-      else if (slots <= 10) mv = '90\'';
-      else if (slots <= 15) mv = '60\'';
-      else mv = '30\'';
-      return { slots, mv };
-    }
     socket.on('characterLoaded', (charData) => {
-      const enc = encumbrance(charData);
-      display.textContent =
-        'Items:\n' +
-        (charData.inventory || []).join('\n') +
-        `\nGold: ${charData.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`;
+      display.textContent = 'Spells:\n' + (charData.spells || []).join('\n');
     });
   </script>
 </body>
