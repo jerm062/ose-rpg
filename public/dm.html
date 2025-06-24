@@ -16,9 +16,12 @@
 </head>
 <body>
   <h1>OSE RPG GM Interface</h1>
-  <canvas id="hexMap" width="800" height="600"></canvas>
+  <pre id="menuDisplay"></pre>
+  <input id="gmInput" autocomplete="off" />
+  <pre id="logDisplay"></pre>
+  <canvas id="hexMap" width="600" height="600" style="display:none"></canvas>
 
   <script src="/socket.io/socket.io.js"></script>
-  <script type="module" src="dm_map_editor.js"></script>
+  <script src="gm_menu.js"></script>
 </body>
 </html>
