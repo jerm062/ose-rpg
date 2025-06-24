@@ -18,6 +18,9 @@ let mapData = [];
 
 let savedCharacters = {};
 let sharedText = "Welcome to the campaign.";
+// Track which player sockets map to which names and ready status
+const playerNames = {};
+const readyState = {};
 
 // Load campaign log
 if (fs.existsSync(LOG_FILE)) {
@@ -55,6 +58,23 @@ app.get('/', (req, res) => {
 
 io.on("connection", (socket) => {
   console.log("Client connected:", socket.id);
+
+  socket.on("registerPlayer", (name) => {
+    playerNames[socket.id] = name;
+    if (!Object.prototype.hasOwnProperty.call(readyState, name)) {
+      readyState[name] = false;
+    }
+    socket.emit("readyList", readyState);
+    io.emit("readyList", readyState);
+  });
+
+  socket.on("playerReady", (state) => {
+    const name = playerNames[socket.id];
+    if (name) {
+      readyState[name] = !!state;
+      io.emit("readyList", readyState);
+    }
+  });
 
   socket.on("loadCharacter", (name) => {
     if (savedCharacters[name]) {
@@ -147,6 +167,12 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Client disconnected:", socket.id);
+    const name = playerNames[socket.id];
+    if (name) {
+      delete playerNames[socket.id];
+      delete readyState[name];
+      io.emit("readyList", readyState);
+    }
   });
 });
 

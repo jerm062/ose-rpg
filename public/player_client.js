@@ -88,9 +88,22 @@ window.onload = function () {
         '3. Map\n' +
         '4. Chat\n' +
         '5. Journal\n' +
+        '6. Help\n' +
         '(Selecting an option opens a new page)'
     );
     phase = 'menu';
+  }
+
+  function showHelp() {
+    printMessage(
+      'Commands:\n' +
+        '#item - use item from inventory\n' +
+        '$N - spend N gold\n' +
+        '/ready or /unready - toggle ready status\n' +
+        '/roll XdY(+N) - roll dice in chat'
+    );
+    printMessage('0. Return');
+    phase = 'help';
   }
 
   function showCharacterSheet() {
@@ -241,6 +254,9 @@ window.onload = function () {
         case '5':
           window.location.href = 'journal.html';
           break;
+        case '6':
+          showHelp();
+          break;
         default:
           printMessage('Invalid choice.');
       }
@@ -255,6 +271,10 @@ window.onload = function () {
         showMenu();
       }
     } else if (phase === 'journal') {
+      if (text === '0') {
+        showMenu();
+      }
+    } else if (phase === 'help') {
       if (text === '0') {
         showMenu();
       }
@@ -276,6 +296,7 @@ window.onload = function () {
     currentChar = charData;
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
+    socket.emit('registerPlayer', charData.name);
     showMenu();
   });
 
