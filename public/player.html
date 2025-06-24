@@ -3,15 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>OSE RPG - Player</title>
+  <style>
+    body {
+      background: black;
+      color: lime;
+      font-family: monospace;
+    }
+    canvas {
+      border: 1px solid lime;
+    }
+  </style>
 </head>
-<body style="background:black; color:lime; font-family:monospace;">
+<body>
   <h1>OSE RPG Player View</h1>
   <div id="charName"></div>
   <div id="stats"></div>
   <div id="inventory"></div>
-  <canvas id="hexMap" width="600" height="400"></canvas>
   <div id="actions"></div>
   <pre id="log"></pre>
+  <canvas id="hexMap" width="600" height="400"></canvas>
 
   <script src="/socket.io/socket.io.js"></script>
   <script type="module" src="player_client.js"></script>
