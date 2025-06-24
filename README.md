@@ -1,3 +1,4 @@
-OSE RPG Bundle
+OSE RPG Full Bundle
 
-Includes updated player, GM, and server logic.
+Run with `npm install` then `node server.js`
+Visit http://localhost:3000/player.html

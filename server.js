@@ -1,3 +1,3 @@
-// [server.js content from canvas — handles character save/load and shared text]
+// placeholder for server.js - already working version from canvas
 const express = require('express');
 ...
