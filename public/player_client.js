@@ -1,6 +1,26 @@
-// placeholder for player_client.js - already working version from canvas
-window.onload = function() {
+// Basic client for OSE RPG
+window.onload = () => {
   const socket = io();
-  // client setup continues...
-  print("Enter your character name:");
+  const display = document.getElementById('gameDisplay');
+  const input = document.getElementById('commandInput');
+
+  function print(text) {
+    display.textContent += text + '\n';
+    display.scrollTop = display.scrollHeight;
+  }
+
+  // Show the shared text when we connect
+  socket.emit('getSharedText');
+  socket.on('sharedText', (text) => {
+    print(text);
+  });
+
+  print('Enter your character name:');
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && input.value.trim() !== '') {
+      socket.emit('updateSharedText', input.value.trim());
+      input.value = '';
+    }
+  });
 };
