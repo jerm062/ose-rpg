@@ -41,6 +41,7 @@ let sharedText = "Welcome to the campaign.";
 // Track which player sockets map to which names and ready status
 const playerNames = {};
 const readyState = {};
+const playerPositions = {};
 
 // Load campaign log
 if (fs.existsSync(LOG_FILE)) {
@@ -126,7 +127,11 @@ io.on("connection", (socket) => {
     if (!Object.prototype.hasOwnProperty.call(readyState, name)) {
       readyState[name] = false;
     }
+    if (savedCharacters[name] && savedCharacters[name].icon && !playerPositions[name]) {
+      playerPositions[name] = { x: 0, y: 0, icon: savedCharacters[name].icon };
+    }
     socket.emit("readyList", readyState);
+    socket.emit("playerPositions", playerPositions);
     io.emit("readyList", readyState);
   });
 
@@ -161,6 +166,27 @@ io.on("connection", (socket) => {
 
   socket.on("loadAllCharacters", () => {
     socket.emit("allCharacters", savedCharacters);
+  });
+
+  socket.on("setCharIcon", ({ name, icon }) => {
+    if (savedCharacters[name]) {
+      savedCharacters[name].icon = icon;
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      const pos = playerPositions[name] || { x: 0, y: 0 };
+      playerPositions[name] = { x: pos.x, y: pos.y, icon };
+      io.emit("playerPositions", playerPositions);
+    }
+  });
+
+  socket.on("movePlayer", ({ name, x, y }) => {
+    if (savedCharacters[name] && savedCharacters[name].icon) {
+      playerPositions[name] = { x, y, icon: savedCharacters[name].icon };
+      io.emit("playerPositions", playerPositions);
+    }
+  });
+
+  socket.on("getPlayerPositions", () => {
+    socket.emit("playerPositions", playerPositions);
   });
 
   socket.on("playerMessage", ({ name, message }) => {
@@ -323,7 +349,9 @@ io.on("connection", (socket) => {
     if (name) {
       delete playerNames[socket.id];
       delete readyState[name];
+      delete playerPositions[name];
       io.emit("readyList", readyState);
+      io.emit("playerPositions", playerPositions);
     }
   });
 });

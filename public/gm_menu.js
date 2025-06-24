@@ -77,6 +77,7 @@ function showCharMenu() {
     '1. List characters\n' +
     '2. Delete character\n' +
     '3. Save character\n' +
+    '4. Set icon\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -186,6 +187,10 @@ function handleInput(text) {
         display.textContent = 'Enter character JSON:';
         mode = 'savechar';
         break;
+      case '4':
+        display.textContent = 'Enter character name to set icon:';
+        mode = 'iconName';
+        break;
       case '0':
         showMainMenu();
         break;
@@ -246,6 +251,22 @@ function handleInput(text) {
       showMainMenu();
       palette.style.display = 'none';
       mapControls.style.display = 'none';
+    }
+  } else if (mode === 'iconName') {
+    charNameTemp = text;
+    buildPalette();
+    palette.style.display = 'block';
+    display.textContent = 'Select icon then press Enter (0 cancel)';
+    mode = 'iconPick';
+  } else if (mode === 'iconPick') {
+    if (text === '0') {
+      palette.style.display = 'none';
+      showMainMenu();
+    } else {
+      socket.emit('setCharIcon', { name: charNameTemp, icon: selectedTile });
+      palette.style.display = 'none';
+      display.textContent = 'Icon set.';
+      mode = 'help';
     }
   } else if (mode === 'help') {
     if (text === '0') {
