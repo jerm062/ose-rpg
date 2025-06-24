@@ -17,6 +17,12 @@
     }
     a { color: #00ffcc; }
     pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid #0f0; padding: 0.5rem; }
+    .char { color: deepskyblue; }
+    .location { color: violet; }
+    .item { color: gold; }
+    .spell { color: orchid; }
+    .monster { color: tomato; }
+    .gold { color: khaki; }
     input { width: 100%; font-size: 18px; margin-top: 0.5rem; }
   </style>
 </head>
@@ -32,12 +38,22 @@
     const input = document.getElementById('chatInput');
     const name = localStorage.getItem('characterName') || 'Anon';
 
+    function colorize(text) {
+      return text
+        .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
+        .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
+        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
+        .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
+        .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
+        .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
+    }
+
     socket.emit('getCampaignLog');
     socket.on('campaignLog', (log) => {
-      logEl.textContent = log.join('\n');
+      logEl.innerHTML = log.map(colorize).join('<br>');
     });
     socket.on('logUpdate', (entry) => {
-      logEl.textContent += '\n' + entry;
+      logEl.innerHTML += '<br>' + colorize(entry);
       logEl.scrollTop = logEl.scrollHeight;
     });
     input.addEventListener('keydown', (e) => {

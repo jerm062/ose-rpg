@@ -8,6 +8,16 @@ const cellSize = 30;
 let mode = 'menu';
 let mapData = [];
 
+function colorize(text) {
+  return text
+    .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
+    .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
+    .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
+    .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
+    .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
+    .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
+}
+
 function showMenu() {
   display.textContent =
     'GM Menu\n' +
@@ -90,11 +100,11 @@ socket.on('allCharacters', (chars) => {
 });
 
 socket.on('campaignLog', (log) => {
-  logDisplay.textContent = log.join('\n');
+  logDisplay.innerHTML = log.map(colorize).join('<br>');
 });
 
 socket.on('logUpdate', (entry) => {
-  logDisplay.textContent += entry + '\n';
+  logDisplay.innerHTML += '<br>' + colorize(entry);
 });
 
 socket.on('mapData', (data) => {
