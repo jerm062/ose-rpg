@@ -80,6 +80,9 @@ function showCharMenu() {
     '2. Delete character\n' +
     '3. Save character\n' +
     '4. Set icon\n' +
+    '5. View sheet\n' +
+    '6. Give item/gold\n' +
+    '7. Remove status\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -210,6 +213,18 @@ function handleInput(text) {
         display.textContent = 'Enter character name to set icon:';
         mode = 'iconName';
         break;
+      case '5':
+        display.textContent = 'Enter character name to view:';
+        mode = 'viewSheet';
+        break;
+      case '6':
+        display.textContent = 'Enter character name to give item/gold:';
+        mode = 'giveItemName';
+        break;
+      case '7':
+        display.textContent = 'Enter character name to remove status:';
+        mode = 'removeStatusName';
+        break;
       case '0':
         showMainMenu();
         break;
@@ -287,6 +302,32 @@ function handleInput(text) {
       display.textContent = 'Icon set.';
       mode = 'help';
     }
+  } else if (mode === 'viewSheet') {
+    window.open(`character.html?n=${encodeURIComponent(text)}&dm=1`, '_blank');
+    showMainMenu();
+  } else if (mode === 'giveItemName') {
+    charNameTemp = text;
+    display.textContent = 'Enter item name or "gp N":';
+    mode = 'giveItemValue';
+  } else if (mode === 'giveItemValue') {
+    const m = text.match(/^gp\s+(\d+)/i);
+    if (m) {
+      socket.emit('giveItem', { name: charNameTemp, gp: parseInt(m[1], 10) });
+    } else {
+      socket.emit('giveItem', { name: charNameTemp, item: text });
+    }
+    charNameTemp = '';
+    display.textContent = 'Given.';
+    mode = 'help';
+  } else if (mode === 'removeStatusName') {
+    charNameTemp = text;
+    display.textContent = 'Enter status to remove:';
+    mode = 'removeStatusValue';
+  } else if (mode === 'removeStatusValue') {
+    socket.emit('removeStatus', { name: charNameTemp, status: text });
+    charNameTemp = '';
+    display.textContent = 'Status removed.';
+    mode = 'help';
   } else if (mode === 'help') {
     if (text === '0') {
       showMainMenu();

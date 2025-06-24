@@ -162,6 +162,7 @@ window.onload = function () {
     { name: 'Oil Flask', cost: 2 },
     { name: 'Backpack', cost: 5 },
     { name: 'Waterskin', cost: 1 },
+    { name: 'Beer', cost: 1 },
     { name: 'Bedroll', cost: 5 },
     { name: 'Grappling Hook', cost: 25 },
     { name: 'Hammer & Spikes', cost: 3 },
@@ -246,6 +247,9 @@ window.onload = function () {
     );
     printMessage(
       `Level:${currentChar.level} HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
+    );
+    printMessage(
+      `Active Status: ${(currentChar.status || []).join(', ') || '(none)'}`
     );
     showMenu();
   }
@@ -461,6 +465,7 @@ window.onload = function () {
   socket.on('characterLoaded', (charData) => {
     currentChar = charData;
     currentChar.equipped = currentChar.equipped || [];
+    currentChar.status = currentChar.status || [];
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     socket.emit('registerPlayer', charData.name);

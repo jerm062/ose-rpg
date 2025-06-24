@@ -38,7 +38,9 @@
 
     const display = document.getElementById('charDisplay');
     const socket = io();
-    const name = localStorage.getItem('characterName');
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('n') || localStorage.getItem('characterName');
+    const dmMode = params.has('dm');
     if (name) {
       socket.emit('loadCharacter', name);
     } else {
@@ -104,6 +106,14 @@
     socket.on('characterLoaded', (charData) => {
       currentChar = charData;
       const s = charData.stats || {};
+      const statusList = charData.status || [];
+      const statusHtml = statusList.length
+        ? statusList
+            .map((s) =>
+              dmMode ? `${s} <button data-s="${s}" class="rm">x</button>` : s
+            )
+            .join(', ')
+        : '(none)';
       display.innerHTML =
         `<strong>${charData.name}</strong><br>` +
         `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
@@ -112,6 +122,7 @@
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +
         `AC:${charData.ac} ` +
         `XP:<input id="xpInput" type="number" value="${charData.xp}" style="width:80px">/${charData.nextLevelXP}<br>` +
+        `Active Status: ${statusHtml}<br>` +
         `<button id="saveBtn">Save</button>`;
 
       document.getElementById('saveBtn').onclick = () => {
@@ -121,6 +132,15 @@
         socket.emit('saveCharacter', currentChar);
         alert('Character saved');
       };
+
+      if (dmMode) {
+        document.querySelectorAll('.rm').forEach((btn) => {
+          btn.onclick = () => {
+            const stat = btn.getAttribute('data-s');
+            socket.emit('removeStatus', { name: charData.name, status: stat });
+          };
+        });
+      }
     });
   </script>
 </body>

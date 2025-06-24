@@ -96,6 +96,8 @@ if (fs.existsSync(CHAR_FILE)) {
     Object.values(savedCharacters).forEach((c) => {
       c.inventory = c.inventory || [];
       c.equipped = c.equipped || [];
+      c.status = c.status || [];
+      c.beersDrank = c.beersDrank || 0;
     });
   } catch (err) {
     console.error("Error reading character file:", err);
@@ -160,6 +162,8 @@ io.on("connection", (socket) => {
       const c = savedCharacters[name];
       c.inventory = c.inventory || [];
       c.equipped = c.equipped || [];
+      c.status = c.status || [];
+      c.beersDrank = c.beersDrank || 0;
       socket.emit("characterLoaded", c);
     } else {
       socket.emit("characterNotFound");
@@ -169,6 +173,8 @@ io.on("connection", (socket) => {
   socket.on("saveCharacter", (charData) => {
     charData.inventory = charData.inventory || [];
     charData.equipped = charData.equipped || [];
+    charData.status = charData.status || [];
+    charData.beersDrank = charData.beersDrank || 0;
     savedCharacters[charData.name] = charData;
     fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
       if (err) console.error("Save error:", err);
@@ -190,6 +196,30 @@ io.on("connection", (socket) => {
       savedCharacters[name] = { ...savedCharacters[name], ...data };
       fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
       socket.emit("characterLoaded", savedCharacters[name]);
+    }
+  });
+
+  socket.on("giveItem", ({ name, item, gp }) => {
+    const c = savedCharacters[name];
+    if (c) {
+      if (item) {
+        c.inventory = c.inventory || [];
+        c.inventory.push(item);
+      }
+      if (gp) {
+        c.gold = (c.gold || 0) + gp;
+      }
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+    }
+  });
+
+  socket.on("removeStatus", ({ name, status }) => {
+    const c = savedCharacters[name];
+    if (c && c.status) {
+      c.status = c.status.filter((s) => s !== status);
+      if (status === "drunk") c.beersDrank = 0;
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
+      socket.emit("characterLoaded", c);
     }
   });
 
@@ -250,6 +280,7 @@ io.on("connection", (socket) => {
     if (char) {
       const itemRegex = /#([\w ]+)/g;
       let match;
+      let drankBeer = false;
       while ((match = itemRegex.exec(message))) {
         const itemName = match[1].trim().toLowerCase();
         const idx = (char.inventory || []).findIndex(
@@ -257,6 +288,15 @@ io.on("connection", (socket) => {
         );
         if (idx !== -1) {
           const removed = char.inventory.splice(idx, 1)[0];
+          if (removed.toLowerCase() === "beer") {
+            drankBeer = true;
+            char.beersDrank = (char.beersDrank || 0) + 1;
+            const chance = Math.min(6, char.beersDrank) / 6;
+            if (Math.random() < chance) {
+              char.status = char.status || [];
+              if (!char.status.includes("drunk")) char.status.push("drunk");
+            }
+          }
           const eqIdx = (char.equipped || []).findIndex(
             (it) => it.toLowerCase() === itemName
           );
@@ -276,7 +316,12 @@ io.on("connection", (socket) => {
       fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), () => {});
     }
 
-    const entry = `[Player] ${name}: ${message}`;
+    let finalMsg = message;
+    if (char && (char.status || []).includes("drunk")) {
+      finalMsg = message.split("").sort(() => Math.random() - 0.5).join("");
+    }
+
+    const entry = `[Player] ${name}: ${finalMsg}`;
     campaignLog.push(entry);
     fs.appendFile(LOG_FILE, entry + "\n", () => {});
     io.emit("logUpdate", entry);
