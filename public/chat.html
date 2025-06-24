@@ -4,48 +4,83 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chat</title>
+  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
   <style>
     body {
-      background: black;
-      color: lime;
       font-family: monospace;
       padding: 1rem;
       margin: 0 auto;
       max-width: 600px;
       font-size: 18px;
       line-height: 1.4;
+      background: var(--bg);
+      color: var(--fg);
     }
-    a { color: #00ffcc; }
-    pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid #0f0; padding: 0.5rem; }
+    a { color: var(--link); }
+    pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid var(--border); padding: 0.5rem; }
     .char { color: deepskyblue; }
     .location { color: violet; }
     .item { color: gold; }
     .spell { color: orchid; }
     .monster { color: tomato; }
     .gold { color: khaki; }
-    input { width: 100%; font-size: 18px; margin-top: 0.5rem; }
+    input { width: 100%; font-size: 18px; margin-top: 0.5rem; background: var(--accent-bg); color: var(--accent-fg); border: 1px solid var(--border); }
+    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
+  <label for="themeSelect">Theme:</label>
+  <select id="themeSelect">
+    <option value="classic">Classic</option>
+    <option value="bw">Black & White</option>
+    <option value="modern">Modern</option>
+  </select>
   <pre id="log"></pre>
   <input id="chatInput" placeholder="message" autocomplete="off" />
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    const sel = document.getElementById('themeSelect');
+    const saved = localStorage.getItem('theme') || 'classic';
+    sel.value = saved;
+    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
+    sel.onchange = () => {
+      const t = sel.value;
+      localStorage.setItem('theme', t);
+      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
+    };
     const socket = io();
     const logEl = document.getElementById('log');
     const input = document.getElementById('chatInput');
     const name = localStorage.getItem('characterName') || 'Anon';
+    let charStyles = {};
+
+    socket.emit('loadAllCharacters');
+    socket.on('allCharacters', (chars) => {
+      charStyles = {};
+      for (const [n, data] of Object.entries(chars)) {
+        charStyles[n] = {
+          color: data.nameColor || 'deepskyblue',
+          font: data.nameFont || 'monospace'
+        };
+      }
+    });
+
+    function styledName(n, text) {
+      const style = charStyles[n] || { color: 'deepskyblue', font: 'monospace' };
+      return `<span class="char" style="color:${style.color}; font-family:${style.font}">${text}</span>`;
+    }
 
     function colorize(text) {
-      return text
+      text = text
         .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
         .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
+        .replace(/@([\w ]+)/g, (m, c) => styledName(c, '@' + c))
         .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
         .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
         .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
+      return text.replace(/\[Player\] ([^:]+):/, (m, p1) => `[Player] ${styledName(p1, p1)}:`);
     }
 
     socket.emit('getCampaignLog');

@@ -20,6 +20,13 @@ window.onload = function () {
     { name: 'Soldier', items: ['spear', 'shield'] },
     { name: 'Urchin', items: ['dagger', 'rat on a string'] }
   ];
+  const xpTable = {
+    Fighter: [0, 2000, 4000, 8000, 16000, 32000, 64000, 120000, 240000, 360000],
+    Cleric: [0, 1500, 3000, 6000, 12000, 24000, 48000, 90000, 180000, 270000],
+    'Magic-User': [0, 2500, 5000, 10000, 20000, 40000, 80000, 150000, 300000, 450000],
+    Thief: [0, 1200, 2400, 4800, 9600, 20000, 40000, 70000, 110000, 160000]
+  };
+  const hitDie = { Fighter: 8, Cleric: 6, 'Magic-User': 4, Thief: 4 };
   const shopItems = [
     // Adventuring gear
     { name: 'Rations (1 day)', cost: 5 },
@@ -95,7 +102,7 @@ window.onload = function () {
       `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}`
     );
     printMessage(
-      `HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
+      `Level:${currentChar.level} HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
     );
     const enc = encumbrance(currentChar);
     printMessage(`ENC:${enc.slots} MV:${enc.mv}`);
@@ -169,10 +176,12 @@ window.onload = function () {
           WIS: rollStat(),
           CHA: rollStat()
         };
-        currentChar.hp = Math.floor(Math.random() * 6) + 1;
+        const hd = hitDie[currentChar.class] || 6;
+        currentChar.level = 1;
+        currentChar.hp = Math.floor(Math.random() * hd) + 1;
         currentChar.ac = 9;
         currentChar.xp = 0;
-        currentChar.nextLevelXP = 2000;
+        currentChar.nextLevelXP = xpTable[currentChar.class][1];
         const roll = () => Math.floor(Math.random() * 6) + 1;
         currentChar.gold = (roll() + roll() + roll()) * 10;
         printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
@@ -258,6 +267,8 @@ window.onload = function () {
   }
 
   function finalizeCharacter() {
+    currentChar.nameColor = '#00bfff';
+    currentChar.nameFont = 'monospace';
     socket.emit('saveCharacter', currentChar);
     printMessage('Character creation complete!');
     phase = 'loading';
@@ -265,6 +276,8 @@ window.onload = function () {
 
   socket.on('characterLoaded', (charData) => {
     currentChar = charData;
+    if (!currentChar.nameColor) currentChar.nameColor = '#00bfff';
+    if (!currentChar.nameFont) currentChar.nameFont = 'monospace';
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     showMenu();
