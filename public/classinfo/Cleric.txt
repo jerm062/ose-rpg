@@ -1,0 +1,6 @@
+Cleric
+Prime Requisite: WIS
+Hit Dice: 1d6 per level to 9th
+Armor: Any, shield allowed
+Weapons: Blunt only
+Clerics are holy warriors who wield divine magic and fight undead with special power.

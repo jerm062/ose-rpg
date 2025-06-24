@@ -1,0 +1,6 @@
+Assassin
+Prime Requisite: STR and DEX
+Hit Dice: 1d4 per level to 10th
+Armor: Leather, no shield
+Weapons: Any
+Assassins are killers for hire skilled in disguise and poison. They can backstab like thieves.

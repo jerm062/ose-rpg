@@ -1,0 +1,6 @@
+Druid
+Prime Requisite: WIS
+Hit Dice: 1d6 per level to 14th
+Armor: Leather, shield allowed
+Weapons: Club, dagger, spear and staff
+Druids wield divine magic rooted in nature and can change into animal form at higher levels.

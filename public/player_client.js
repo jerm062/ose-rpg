@@ -328,8 +328,19 @@ window.onload = function () {
       currentChar = { name: text, inventory: [], equipped: [] };
       printMessage(`Hello ${text}! Choose a class:`);
       classes.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
+      printMessage('Type the number to select or number followed by A for info.');
       phase = 'chooseClass';
     } else if (phase === 'chooseClass') {
+      const infoMatch = text.match(/^(\d+)a$/i);
+      if (infoMatch) {
+        const i = parseInt(infoMatch[1]) - 1;
+        if (classes[i]) {
+          window.open(`classinfo.html?c=${encodeURIComponent(classes[i])}`, '_blank');
+        } else {
+          printMessage('Invalid choice.');
+        }
+        return;
+      }
       const idx = parseInt(text) - 1;
       if (classes[idx]) {
         currentChar.class = classes[idx];

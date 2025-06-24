@@ -1,0 +1,6 @@
+Barbarian
+Prime Requisite: STR and CON
+Hit Dice: 1d8 per level to 9th
+Armor: Chain mail or lighter, shield allowed
+Weapons: Any
+Barbarians are fierce warriors from the wilds with exceptional toughness and survival skills.

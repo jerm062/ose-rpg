@@ -1,0 +1,6 @@
+Paladin
+Prime Requisite: STR and CHA
+Hit Dice: 1d8 per level to 9th
+Armor: Any, shield allowed
+Weapons: Any
+Paladins are holy warriors dedicated to righteousness. They can lay on hands to heal and repel evil.

@@ -106,7 +106,7 @@
       const s = charData.stats || {};
       display.innerHTML =
         `<strong>${charData.name}</strong><br>` +
-        `Class: ${charData.class} ${charData.alignment} Level ${charData.level}<br>` +
+        `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
         `Career: ${charData.career || ''}<br>` +
         `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}<br>` +
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +

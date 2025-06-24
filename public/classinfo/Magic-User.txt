@@ -1,0 +1,6 @@
+Magic-User
+Prime Requisite: INT
+Hit Dice: 1d4 per level to 9th
+Armor: None
+Weapons: Dagger and staff
+Magic-Users study arcane spells. They can use only simple weapons but have powerful magic.
