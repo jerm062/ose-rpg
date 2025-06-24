@@ -3,6 +3,7 @@ const display = document.getElementById('menuDisplay');
 const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
+const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = 30;
 let mode = 'menu';
@@ -27,6 +28,7 @@ function showMenu() {
     '4. Send DM message\n' +
     '5. View map\n' +
     '6. Edit map\n' +
+    '7. Help\n' +
     '0. Return to menu';
   canvas.style.display = 'none';
   mode = 'menu';
@@ -77,6 +79,12 @@ function handleInput(text) {
         socket.emit('getMap');
         mode = 'editmap';
         break;
+      case '7':
+        display.textContent =
+          'GM Help:\n/ready players send /ready or /unready in chat to toggle status.' +
+          '\nUse menu numbers to access tools.\n0. Return';
+        mode = 'help';
+        break;
       default:
         showMenu();
     }
@@ -89,6 +97,10 @@ function handleInput(text) {
   } else if (mode === 'log') {
     if (text === '0') showMenu();
   } else if (mode === 'viewmap' || mode === 'editmap') {
+    if (text === '0') {
+      showMenu();
+    }
+  } else if (mode === 'help') {
     if (text === '0') {
       showMenu();
     }
@@ -110,6 +122,12 @@ socket.on('logUpdate', (entry) => {
 socket.on('mapData', (data) => {
   mapData = data;
   drawMap();
+});
+
+socket.on('readyList', (list) => {
+  readyDisplay.textContent = Object.entries(list)
+    .map(([n, r]) => `${r ? '[READY]' : '[    ]'} ${n}`)
+    .join('\n');
 });
 
 canvas.addEventListener('click', (ev) => {

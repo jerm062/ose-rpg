@@ -36,6 +36,7 @@
     <option value="modern">Modern</option>
   </select>
   <pre id="log"></pre>
+  <pre id="readyBox"></pre>
   <input id="chatInput" placeholder="message" autocomplete="off" />
   <p><a href="player.html">&#x2B05; Back</a></p>
 
@@ -52,6 +53,7 @@
     };
     const socket = io();
     const logEl = document.getElementById('log');
+    const readyBox = document.getElementById('readyBox');
     const input = document.getElementById('chatInput');
     const name = localStorage.getItem('characterName') || 'Anon';
 
@@ -66,6 +68,7 @@
     }
 
     socket.emit('getCampaignLog');
+    socket.emit('registerPlayer', name);
     socket.on('campaignLog', (log) => {
       logEl.innerHTML = log.map(colorize).join('<br>');
     });
@@ -73,9 +76,52 @@
       logEl.innerHTML += '<br>' + colorize(entry);
       logEl.scrollTop = logEl.scrollHeight;
     });
+    socket.on('readyList', (list) => {
+      readyBox.textContent = Object.entries(list)
+        .map(([n, r]) => `${r ? '[READY]' : '[    ]'} ${n}`)
+        .join('\n');
+    });
+    function roll(expr) {
+      const m = expr.match(/(\d*)d(\d+)([+-]\d+)?/i);
+      if (!m) return null;
+      const num = parseInt(m[1] || '1', 10);
+      const sides = parseInt(m[2], 10);
+      const mod = parseInt(m[3] || '0', 10);
+      let total = 0;
+      const rolls = [];
+      for (let i = 0; i < num; i++) {
+        const r = Math.floor(Math.random() * sides) + 1;
+        rolls.push(r);
+        total += r;
+      }
+      total += mod;
+      return { total, detail: `${rolls.join(' + ')}${mod ? (mod>0? ' +' + mod: ' ' + mod) : ''}` };
+    }
+
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && input.value.trim()) {
-        socket.emit('playerMessage', { name, message: input.value.trim() });
+        const text = input.value.trim();
+        if (text === '/ready') {
+          socket.emit('playerReady', true);
+          input.value = '';
+          return;
+        }
+        if (text === '/unready') {
+          socket.emit('playerReady', false);
+          input.value = '';
+          return;
+        }
+        if (text.startsWith('/roll ')) {
+          const expr = text.slice(6);
+          const res = roll(expr);
+          if (res) {
+            const msg = `${name} rolls ${expr}: ${res.total} (${res.detail})`;
+            socket.emit('playerMessage', { name, message: msg });
+          }
+          input.value = '';
+          return;
+        }
+        socket.emit('playerMessage', { name, message: text });
         input.value = '';
       }
     });
