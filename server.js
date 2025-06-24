@@ -12,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 const CHAR_FILE = path.join(__dirname, 'player_data.json');
 const LOG_FILE = path.join(__dirname, 'campaign_log.txt');
 const MAP_FILE = path.join(__dirname, 'map_data.json');
+const LORE_FILE = path.join(__dirname, 'lore.json');
 
 let campaignLog = [];
 let maps = {};
@@ -19,6 +20,7 @@ let sharedMap = null;
 let currentMap = null;
 
 let savedCharacters = {};
+let lore = { characters: [], deaths: [], events: [], locations: [] };
 let sharedText = "Welcome to the campaign.";
 // Track which player sockets map to which names and ready status
 const playerNames = {};
@@ -58,12 +60,25 @@ function saveMaps() {
   );
 }
 
+function saveLore() {
+  fs.writeFile(LORE_FILE, JSON.stringify(lore, null, 2), () => {});
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
     savedCharacters = JSON.parse(fs.readFileSync(CHAR_FILE));
   } catch (err) {
     console.error("Error reading character file:", err);
+  }
+}
+
+// Load lore data
+if (fs.existsSync(LORE_FILE)) {
+  try {
+    lore = JSON.parse(fs.readFileSync(LORE_FILE));
+  } catch (err) {
+    console.error("Error reading lore file:", err);
   }
 }
 
@@ -235,6 +250,36 @@ io.on("connection", (socket) => {
       saveMaps();
       if (currentMap === sharedMap) io.emit("mapData", map);
       else socket.emit("mapData", map);
+    }
+  });
+
+  socket.on("getLore", () => {
+    const chars = Object.values(savedCharacters).map(
+      (c) => `${c.name} - ${c.class}`
+    );
+    socket.emit("loreData", {
+      characters: [...lore.characters, ...chars],
+      deaths: lore.deaths,
+      events: lore.events,
+      locations: lore.locations,
+    });
+  });
+
+  socket.on("addLore", ({ chapter, text }) => {
+    if (lore[chapter]) {
+      lore[chapter].push(text);
+      saveLore();
+      io.emit("loreData", {
+        characters: [
+          ...lore.characters,
+          ...Object.values(savedCharacters).map(
+            (c) => `${c.name} - ${c.class}`
+          ),
+        ],
+        deaths: lore.deaths,
+        events: lore.events,
+        locations: lore.locations,
+      });
     }
   });
 

@@ -91,6 +91,7 @@ window.onload = function () {
         '6. Help\n' +
         '7. Spells\n' +
         '8. Save Character\n' +
+        '9. Lore Book\n' +
         '(Selecting an option opens a new page)'
     );
     phase = 'menu';
@@ -267,6 +268,9 @@ window.onload = function () {
         case '8':
           socket.emit('saveCharacter', currentChar);
           printMessage('Character saved.');
+          break;
+        case '9':
+          window.location.href = 'lore.html';
           break;
         default:
           printMessage('Invalid choice.');

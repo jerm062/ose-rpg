@@ -61,7 +61,8 @@ function showMainMenu() {
     '5. Character dialogue\n' +
     '6. Event dialogue\n' +
     '7. Story dialogue\n' +
-    '8. Help';
+    '8. Help\n' +
+    '9. Add Lore';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
@@ -150,6 +151,10 @@ function handleInput(text) {
           '\nUse menu numbers to access tools.\n0. Return';
         mode = 'help';
         break;
+      case '9':
+        display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations';
+        mode = 'loreChapter';
+        break;
       default:
         showMainMenu();
     }
@@ -225,6 +230,32 @@ function handleInput(text) {
     if (text === '0') {
       showMainMenu();
     }
+  } else if (mode === 'loreChapter') {
+    switch (text) {
+      case '1':
+        display.textContent = 'Enter lore for Characters:';
+        mode = 'loreEntryCharacters';
+        break;
+      case '2':
+        display.textContent = 'Enter lore for Deaths:';
+        mode = 'loreEntryDeaths';
+        break;
+      case '3':
+        display.textContent = 'Enter lore for Events:';
+        mode = 'loreEntryEvents';
+        break;
+      case '4':
+        display.textContent = 'Enter lore for Locations:';
+        mode = 'loreEntryLocations';
+        break;
+      default:
+        showMainMenu();
+    }
+  } else if (mode.startsWith('loreEntry')) {
+    const chapter = mode.replace('loreEntry', '').toLowerCase();
+    socket.emit('addLore', { chapter, text });
+    display.textContent = 'Lore added.';
+    mode = 'help';
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;

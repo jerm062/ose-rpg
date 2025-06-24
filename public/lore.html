@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Lore Book</title>
+  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <style>
+    body {
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+      font-size: 18px;
+      line-height: 1.4;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    a { color: var(--link); }
+    #themeSelect { margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <label for="themeSelect">Theme:</label>
+  <select id="themeSelect">
+    <option value="classic">Classic</option>
+    <option value="bw">Black & White</option>
+    <option value="modern">Modern</option>
+  </select>
+  <div id="content">Loading...</div>
+  <p><a href="player.html">&#x2B05; Back</a></p>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const sel = document.getElementById('themeSelect');
+    const saved = localStorage.getItem('theme') || 'classic';
+    sel.value = saved;
+    document.getElementById('themeStylesheet').href = `theme-${saved}.css`;
+    sel.onchange = () => {
+      const t = sel.value;
+      localStorage.setItem('theme', t);
+      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
+    };
+    const socket = io();
+    const content = document.getElementById('content');
+    function render(data) {
+      content.innerHTML = '';
+      for (const [chapter, entries] of Object.entries(data)) {
+        const h = document.createElement('h3');
+        h.textContent = chapter.charAt(0).toUpperCase() + chapter.slice(1);
+        content.appendChild(h);
+        const ul = document.createElement('ul');
+        entries.forEach((e) => {
+          const li = document.createElement('li');
+          li.textContent = e;
+          ul.appendChild(li);
+        });
+        content.appendChild(ul);
+      }
+    }
+    socket.emit('getLore');
+    socket.on('loreData', (data) => {
+      render(data);
+    });
+  </script>
+</body>
+</html>
