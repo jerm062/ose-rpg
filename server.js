@@ -68,6 +68,10 @@ if (fs.existsSync(CHAR_FILE)) {
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/organized_tiles', express.static(path.join(__dirname, 'organized_tiles')));
+app.get('/organized_tileset.json', (req, res) => {
+  res.sendFile(path.join(__dirname, 'organized_tileset.json'));
+});
 
 // Redirect root to player.html for Render or localhost
 app.get('/', (req, res) => {

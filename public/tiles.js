@@ -1,46 +1,40 @@
 const TILE_SIZE = 30;
-const TILES = ['.', '#', 'T', 'H', 'D'];
+let TILES = [];
+const tileImages = {};
+let tilesLoaded = false;
+
+async function loadTileset() {
+  if (tilesLoaded) return;
+  const resp = await fetch('/organized_tileset.json');
+  const data = await resp.json();
+  TILES = data.tiles.map((t) => t.name);
+  const promises = data.tiles.map((t) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = resolve;
+      img.onerror = resolve;
+      img.src = `/organized_tiles/${t.filename}`;
+      tileImages[t.name] = img;
+    });
+  });
+  await Promise.all(promises);
+  tilesLoaded = true;
+}
 
 function drawTile(targetCtx, type, x = 0, y = 0) {
+  const img = tileImages[type];
   targetCtx.save();
   targetCtx.translate(x, y);
   targetCtx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
-  targetCtx.fillStyle = '#fff';
-  targetCtx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
-  targetCtx.fillStyle = '#000';
-  switch (type) {
-    case '#':
-      targetCtx.fillRect(2, 2, TILE_SIZE - 4, TILE_SIZE - 4);
-      break;
-    case 'T':
-      targetCtx.beginPath();
-      targetCtx.moveTo(TILE_SIZE / 2, 4);
-      targetCtx.lineTo(4, TILE_SIZE - 4);
-      targetCtx.lineTo(TILE_SIZE - 4, TILE_SIZE - 4);
-      targetCtx.closePath();
-      targetCtx.fill();
-      break;
-    case 'H':
-      targetCtx.fillRect(4, TILE_SIZE / 2, TILE_SIZE - 8, TILE_SIZE / 2 - 4);
-      targetCtx.beginPath();
-      targetCtx.moveTo(TILE_SIZE / 2, 4);
-      targetCtx.lineTo(4, TILE_SIZE / 2);
-      targetCtx.lineTo(TILE_SIZE - 4, TILE_SIZE / 2);
-      targetCtx.closePath();
-      targetCtx.fill();
-      break;
-    case 'D':
-      targetCtx.fillRect(TILE_SIZE / 4, TILE_SIZE / 4, TILE_SIZE / 2, TILE_SIZE / 2);
-      targetCtx.clearRect(
-        TILE_SIZE / 4 + 2,
-        TILE_SIZE / 4 + 2,
-        TILE_SIZE / 2 - 4,
-        TILE_SIZE / 2 - 4
-      );
-      break;
-    default:
+  if (img) {
+    targetCtx.drawImage(img, 0, 0, TILE_SIZE, TILE_SIZE);
+  } else {
+    targetCtx.fillStyle = '#fff';
+    targetCtx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+    targetCtx.strokeStyle = '#888';
+    targetCtx.strokeRect(0, 0, TILE_SIZE, TILE_SIZE);
   }
-  targetCtx.strokeStyle = '#888';
-  targetCtx.strokeRect(0, 0, TILE_SIZE, TILE_SIZE);
   targetCtx.restore();
 }
+
+window.loadTileset = loadTileset;
