@@ -32,6 +32,7 @@
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="tiles.js"></script>
   <script>
     const sel = document.getElementById('themeSelect');
     const saved = localStorage.getItem('theme') || 'classic';
@@ -45,57 +46,14 @@
 
     const canvas = document.getElementById('mapCanvas');
     const ctx = canvas.getContext('2d');
-    const cellSize = 30;
-
-    function drawTile(targetCtx, type, x = 0, y = 0) {
-      targetCtx.save();
-      targetCtx.translate(x, y);
-      targetCtx.fillStyle = '#fff';
-      targetCtx.fillRect(0, 0, cellSize, cellSize);
-      targetCtx.fillStyle = '#000';
-      switch (type) {
-        case '#':
-          targetCtx.fillRect(2, 2, cellSize - 4, cellSize - 4);
-          break;
-        case 'T':
-          targetCtx.beginPath();
-          targetCtx.moveTo(cellSize / 2, 4);
-          targetCtx.lineTo(4, cellSize - 4);
-          targetCtx.lineTo(cellSize - 4, cellSize - 4);
-          targetCtx.closePath();
-          targetCtx.fill();
-          break;
-        case 'H':
-          targetCtx.fillRect(4, cellSize / 2, cellSize - 8, cellSize / 2 - 4);
-          targetCtx.beginPath();
-          targetCtx.moveTo(cellSize / 2, 4);
-          targetCtx.lineTo(4, cellSize / 2);
-          targetCtx.lineTo(cellSize - 4, cellSize / 2);
-          targetCtx.closePath();
-          targetCtx.fill();
-          break;
-        case 'D':
-          targetCtx.fillRect(cellSize / 4, cellSize / 4, cellSize / 2, cellSize / 2);
-          targetCtx.clearRect(
-            cellSize / 4 + 2,
-            cellSize / 4 + 2,
-            cellSize / 2 - 4,
-            cellSize / 2 - 4
-          );
-          break;
-      }
-      targetCtx.strokeStyle = '#888';
-      targetCtx.strokeRect(0, 0, cellSize, cellSize);
-      targetCtx.restore();
-    }
 
     function drawMap(data) {
-      canvas.width = data[0].length * cellSize;
-      canvas.height = data.length * cellSize;
+      canvas.width = data[0].length * TILE_SIZE;
+      canvas.height = data.length * TILE_SIZE;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let y = 0; y < data.length; y++) {
         for (let x = 0; x < data[y].length; x++) {
-          drawTile(ctx, data[y][x], x * cellSize, y * cellSize);
+          drawTile(ctx, data[y][x], x * TILE_SIZE, y * TILE_SIZE);
         }
       }
     }

@@ -6,56 +6,12 @@ const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
-const cellSize = 30;
+const cellSize = TILE_SIZE;
 let mode = 'menu';
 let mapData = [];
 let selectedTile = '#';
 
-const tiles = ['.', '#', 'T', 'H', 'D'];
-
-function drawTile(targetCtx, type, x = 0, y = 0) {
-  targetCtx.save();
-  targetCtx.translate(x, y);
-  targetCtx.clearRect(0, 0, cellSize, cellSize);
-  targetCtx.fillStyle = '#fff';
-  targetCtx.fillRect(0, 0, cellSize, cellSize);
-  targetCtx.fillStyle = '#000';
-  switch (type) {
-    case '#':
-      targetCtx.fillRect(2, 2, cellSize - 4, cellSize - 4);
-      break;
-    case 'T':
-      targetCtx.beginPath();
-      targetCtx.moveTo(cellSize / 2, 4);
-      targetCtx.lineTo(4, cellSize - 4);
-      targetCtx.lineTo(cellSize - 4, cellSize - 4);
-      targetCtx.closePath();
-      targetCtx.fill();
-      break;
-    case 'H':
-      targetCtx.fillRect(4, cellSize / 2, cellSize - 8, cellSize / 2 - 4);
-      targetCtx.beginPath();
-      targetCtx.moveTo(cellSize / 2, 4);
-      targetCtx.lineTo(4, cellSize / 2);
-      targetCtx.lineTo(cellSize - 4, cellSize / 2);
-      targetCtx.closePath();
-      targetCtx.fill();
-      break;
-    case 'D':
-      targetCtx.fillRect(cellSize / 4, cellSize / 4, cellSize / 2, cellSize / 2);
-      targetCtx.clearRect(
-        cellSize / 4 + 2,
-        cellSize / 4 + 2,
-        cellSize / 2 - 4,
-        cellSize / 2 - 4
-      );
-      break;
-    default:
-  }
-  targetCtx.strokeStyle = '#888';
-  targetCtx.strokeRect(0, 0, cellSize, cellSize);
-  targetCtx.restore();
-}
+const tiles = TILES;
 
 function buildPalette() {
   palette.innerHTML = '';
