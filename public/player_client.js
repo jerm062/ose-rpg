@@ -7,6 +7,8 @@ window.onload = function () {
 
   let phase = 'enterName';
   let currentChar = null;
+  let shopPhase = 'menu';
+  let currentDate = '';
 
   const classes = [
     'Fighter',
@@ -153,8 +155,26 @@ window.onload = function () {
     Paladin: 8,
     Ranger: 8
   };
-  const shopItems = [
-    // Adventuring gear
+  const classRequirements = {
+    Fighter: { STR: 9 },
+    Cleric: { WIS: 9 },
+    'Magic-User': { INT: 9 },
+    Thief: { DEX: 9 },
+    Assassin: { DEX: 9 },
+    Barbarian: { STR: 9 },
+    Bard: { DEX: 9, CHA: 9 },
+    Druid: { WIS: 12 },
+    Illusionist: { INT: 13 },
+    Knight: { STR: 9, CHA: 9 },
+    Paladin: { STR: 12, CHA: 13 },
+    Ranger: { STR: 13, WIS: 13 }
+  };
+
+  function meetsReqs(stats, req) {
+    if (!req) return true;
+    return Object.entries(req).every(([k, v]) => stats[k] >= v);
+  }
+  const gearItems = [
     { name: 'Rations (1 day)', cost: 5 },
     { name: 'Torch', cost: 1 },
     { name: 'Rope (50ft)', cost: 10 },
@@ -162,13 +182,18 @@ window.onload = function () {
     { name: 'Oil Flask', cost: 2 },
     { name: 'Backpack', cost: 5 },
     { name: 'Waterskin', cost: 1 },
-    { name: 'Beer', cost: 1 },
     { name: 'Bedroll', cost: 5 },
     { name: 'Grappling Hook', cost: 25 },
     { name: 'Hammer & Spikes', cost: 3 },
     { name: 'Mirror (small)', cost: 5 },
     { name: 'Flint & Steel', cost: 2 },
-    // Weapons
+    { name: "10' Pole", cost: 1 },
+    { name: 'Iron Spikes (12)', cost: 1 },
+    { name: 'Garlic', cost: 5 },
+    { name: 'Holy Water', cost: 25 },
+    { name: 'Holy Symbol', cost: 25 }
+  ];
+  const weaponItems = [
     { name: 'Dagger', cost: 10 },
     { name: 'Short Sword', cost: 30 },
     { name: 'Long Sword', cost: 50 },
@@ -176,7 +201,6 @@ window.onload = function () {
     { name: 'Spear', cost: 10 },
     { name: 'Bow', cost: 40 },
     { name: 'Arrows (20)', cost: 5 },
-    // Armor
     { name: 'Shield', cost: 10 },
     { name: 'Leather Armor', cost: 20 },
     { name: 'Chain Mail', cost: 40 },
@@ -207,9 +231,34 @@ window.onload = function () {
     return { slots, mv };
   }
 
+  function canUseItem(item) {
+    const c = currentChar.class;
+    if (item.name === 'Spellbook') return c === 'Magic-User' || c === 'Illusionist';
+    if (c === 'Magic-User' || c === 'Illusionist') {
+      if (['Dagger'].includes(item.name)) return true;
+      if (['Shield', 'Leather Armor', 'Chain Mail', 'Plate Mail'].includes(item.name)) return false;
+      return false;
+    }
+    if ((c === 'Thief' || c === 'Assassin' || c === 'Bard') && item.name === 'Plate Mail') return false;
+    if ((c === 'Cleric' || c === 'Druid') && ['Long Sword', 'Short Sword', 'Bow', 'Arrows (20)'].includes(item.name)) return false;
+    return true;
+  }
+
+  function purchaseItem(item) {
+    if (currentChar.gold >= item.cost) {
+      currentChar.gold -= item.cost;
+      currentChar.inventory.push(item.name);
+      printMessage(`Purchased ${item.name}. Gold left: ${currentChar.gold}`);
+    } else {
+      printMessage('Not enough gold.');
+    }
+  }
+
   function showMenu() {
+    socket.emit('getDate');
     printMessage(
-      'Main Menu\n' +
+      `Day: ${currentDate}\n` +
+        'Main Menu\n' +
         '1. Character Sheet\n' +
         '2. Items\n' +
         '3. Map\n' +
@@ -301,14 +350,6 @@ window.onload = function () {
     currentChar.inventory.push(...career.items);
     printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
     careerButton.style.display = 'none';
-    currentChar.stats = {
-      STR: rollStat(),
-      DEX: rollStat(),
-      CON: rollStat(),
-      INT: rollStat(),
-      WIS: rollStat(),
-      CHA: rollStat()
-    };
     const hd = hitDie[currentChar.class] || 6;
     currentChar.level = 1;
     currentChar.hp = Math.floor(Math.random() * hd) + 1;
@@ -317,7 +358,6 @@ window.onload = function () {
     currentChar.nextLevelXP = xpTable[currentChar.class][1];
     const roll = () => Math.floor(Math.random() * 6) + 1;
     currentChar.gold = (roll() + roll() + roll()) * 10;
-    printMessage(`Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`);
     printMessage(`You have ${currentChar.gold}gp to spend.`);
     showShop();
     phase = 'shop';
@@ -325,29 +365,43 @@ window.onload = function () {
 
   function handleInput(text) {
     if (!text) return;
-    if (phase === 'enterName') {
-      socket.emit('loadCharacter', text);
-      phase = 'loading';
-    } else if (phase === 'newName') {
+  if (phase === 'enterName') {
+    socket.emit('loadCharacter', text);
+    phase = 'loading';
+  } else if (phase === 'newName') {
       currentChar = { name: text, inventory: [], equipped: [] };
-      printMessage(`Hello ${text}! Choose a class:`);
-      classes.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
+      currentChar.stats = {
+        STR: rollStat(),
+        DEX: rollStat(),
+        CON: rollStat(),
+        INT: rollStat(),
+        WIS: rollStat(),
+        CHA: rollStat()
+      };
+      printMessage(
+        `Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`
+      );
+      const allowed = classes.filter((c) => meetsReqs(currentChar.stats, classRequirements[c]));
+      currentChar.allowedClasses = allowed;
+      printMessage('Choose a class:');
+      allowed.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
       printMessage('Type the number to select or number followed by A for info.');
       phase = 'chooseClass';
-    } else if (phase === 'chooseClass') {
+  } else if (phase === 'chooseClass') {
+      const list = currentChar.allowedClasses || classes;
       const infoMatch = text.match(/^(\d+)a$/i);
       if (infoMatch) {
         const i = parseInt(infoMatch[1]) - 1;
-        if (classes[i]) {
-          window.open(`classinfo.html?c=${encodeURIComponent(classes[i])}`, '_blank');
+        if (list[i]) {
+          window.open(`classinfo.html?c=${encodeURIComponent(list[i])}`, '_blank');
         } else {
           printMessage('Invalid choice.');
         }
         return;
       }
       const idx = parseInt(text) - 1;
-      if (classes[idx]) {
-        currentChar.class = classes[idx];
+      if (list[idx]) {
+        currentChar.class = list[idx];
         printMessage('Choose an alignment:');
         alignments.forEach((a, i) => printMessage(`${i + 1}. ${a}`));
         phase = 'chooseAlignment';
@@ -365,28 +419,51 @@ window.onload = function () {
         printMessage('Invalid choice.');
       }
     } else if (phase === 'shop') {
-      if (text === '0') {
-        if (currentChar.class === 'Magic-User') {
-          printMessage('Choose a starting spell:');
-          spells.forEach((s, i) => printMessage(`${i + 1}. ${s}`));
-          phase = 'spellSelect';
+      if (shopPhase === 'menu') {
+        if (text === '0') {
+          if (currentChar.class === 'Magic-User') {
+            printMessage('Choose a starting spell:');
+            spells.forEach((s, i) => printMessage(`${i + 1}. ${s}`));
+            phase = 'spellSelect';
+          } else {
+            finalizeCharacter();
+          }
+          return;
+        } else if (text === '1') {
+          shopPhase = 'gear';
+          gearItems.forEach((it, i) =>
+            printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`)
+          );
+          printMessage('0. Back');
+        } else if (text === '2') {
+          shopPhase = 'weapons';
+          const list = weaponItems.filter(canUseItem);
+          list.forEach((it, i) =>
+            printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`)
+          );
+          printMessage('0. Back');
         } else {
-          finalizeCharacter();
+          printMessage('Invalid choice.');
         }
-        return;
-      }
-      const idx = parseInt(text) - 1;
-      const item = shopItems[idx];
-      if (item) {
-        if (currentChar.gold >= item.cost) {
-          currentChar.gold -= item.cost;
-          currentChar.inventory.push(item.name);
-          printMessage(`Purchased ${item.name}. Gold left: ${currentChar.gold}`);
-        } else {
-          printMessage('Not enough gold.');
+      } else if (shopPhase === 'gear') {
+        if (text === '0') {
+          showShop();
+          return;
         }
-      } else {
-        printMessage('Invalid item.');
+        const idx = parseInt(text) - 1;
+        const item = gearItems[idx];
+        if (item) purchaseItem(item);
+        else printMessage('Invalid item.');
+      } else if (shopPhase === 'weapons') {
+        if (text === '0') {
+          showShop();
+          return;
+        }
+        const list = weaponItems.filter(canUseItem);
+        const idx = parseInt(text) - 1;
+        const item = list[idx];
+        if (item) purchaseItem(item);
+        else printMessage('Invalid item.');
       }
     } else if (phase === 'spellSelect') {
       const idx = parseInt(text) - 1;
@@ -452,8 +529,8 @@ window.onload = function () {
   }
 
   function showShop() {
-    printMessage('Shop - enter item number to buy, or 0 to finish:');
-    shopItems.forEach((it, i) => printMessage(`${i + 1}. ${it.name} (${it.cost}gp)`));
+    shopPhase = 'menu';
+    printMessage('Shop\n1. Adventuring Gear\n2. Weapons & Armor\n0. Finish');
   }
 
   function finalizeCharacter() {
@@ -469,6 +546,7 @@ window.onload = function () {
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     socket.emit('registerPlayer', charData.name);
+    socket.emit('getDate');
     showMenu();
   });
 
@@ -486,6 +564,10 @@ window.onload = function () {
     if (phase === 'map') {
       printMap(data);
     }
+  });
+
+  socket.on('currentDate', (d) => {
+    currentDate = d;
   });
 
   socket.on('campaignLog', (log) => {

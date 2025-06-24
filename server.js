@@ -29,6 +29,7 @@ const CHAR_FILE = path.join(CHAR_DIR, 'player_data.json');
 const LOG_FILE = path.join(CHAT_DIR, 'campaign_log.txt');
 const MAP_FILE = path.join(MAP_DIR, 'map_data.json');
 const LORE_FILE = path.join(LORE_DIR, 'lore.json');
+const CAL_FILE = path.join(DATA_DIR, 'calendar.json');
 
 let campaignLog = [];
 let maps = {};
@@ -39,6 +40,19 @@ let savedCharacters = {};
 let lore = { characters: [], deaths: [], events: [], locations: [] };
 let sharedText = "Welcome to the campaign.";
 
+const months = [
+  'Early Spring',
+  'Late Spring',
+  'Early Summer',
+  'Later Summer',
+  'Early Fall',
+  'Late Fall',
+  'Early Winter',
+  'Later Winter',
+];
+const monthDays = [31, 31, 31, 33, 31, 31, 31, 31];
+let calendar = { day: 1, month: 0 };
+
 // Ensure base data files exist
 if (!fs.existsSync(CHAR_FILE)) fs.writeFileSync(CHAR_FILE, '{}');
 if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '');
@@ -46,6 +60,8 @@ if (!fs.existsSync(MAP_FILE))
   fs.writeFileSync(MAP_FILE, JSON.stringify({ maps: {}, sharedMap: null }, null, 2));
 if (!fs.existsSync(LORE_FILE))
   fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
+if (!fs.existsSync(CAL_FILE))
+  fs.writeFileSync(CAL_FILE, JSON.stringify(calendar));
 // Track which player sockets map to which names and ready status
 const playerNames = {};
 const readyState = {};
@@ -89,6 +105,14 @@ function saveLore() {
   fs.writeFile(LORE_FILE, JSON.stringify(lore, null, 2), () => {});
 }
 
+function saveCalendar() {
+  fs.writeFile(CAL_FILE, JSON.stringify(calendar), () => {});
+}
+
+function formatDate() {
+  return `${calendar.day} ${months[calendar.month]}`;
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
@@ -110,6 +134,17 @@ if (fs.existsSync(LORE_FILE)) {
     lore = JSON.parse(fs.readFileSync(LORE_FILE));
   } catch (err) {
     console.error("Error reading lore file:", err);
+  }
+}
+
+if (fs.existsSync(CAL_FILE)) {
+  try {
+    const c = JSON.parse(fs.readFileSync(CAL_FILE));
+    if (c && typeof c.day === 'number' && typeof c.month === 'number') {
+      calendar = c;
+    }
+  } catch (err) {
+    console.error('Error reading calendar file:', err);
   }
 }
 
@@ -147,6 +182,32 @@ io.on("connection", (socket) => {
     socket.emit("readyList", readyState);
     socket.emit("playerPositions", playerPositions);
     io.emit("readyList", readyState);
+  });
+
+  socket.on("getDate", () => {
+    socket.emit("currentDate", formatDate());
+  });
+
+  socket.on("advanceDay", () => {
+    calendar.day += 1;
+    if (calendar.day > monthDays[calendar.month]) {
+      calendar.day = 1;
+      calendar.month = (calendar.month + 1) % months.length;
+    }
+    saveCalendar();
+    io.emit("currentDate", formatDate());
+  });
+
+  socket.on("getJournal", (name) => {
+    const file = path.join(CHAR_DIR, `${name}_journal.txt`);
+    fs.readFile(file, 'utf8', (err, data) => {
+      socket.emit("journalData", data || "");
+    });
+  });
+
+  socket.on("saveJournal", ({ name, text }) => {
+    const file = path.join(CHAR_DIR, `${name}_journal.txt`);
+    fs.writeFile(file, text || "", () => {});
   });
 
   socket.on("playerReady", (state) => {
