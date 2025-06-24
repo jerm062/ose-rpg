@@ -1,2 +1,3 @@
-# OSE RPG Web Game
-Menu-driven multiplayer RPG with GM tools, shared campaign text, and character background generator.
+OSE RPG Bundle
+
+Includes updated player, GM, and server logic.
