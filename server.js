@@ -14,7 +14,9 @@ const LOG_FILE = path.join(__dirname, 'campaign_log.txt');
 const MAP_FILE = path.join(__dirname, 'map_data.json');
 
 let campaignLog = [];
-let mapData = [];
+let maps = {};
+let sharedMap = null;
+let currentMap = null;
 
 let savedCharacters = {};
 let sharedText = "Welcome to the campaign.";
@@ -31,13 +33,29 @@ if (fs.existsSync(LOG_FILE)) {
   }
 }
 
-// Load map data
+// Load map data (supports multiple maps)
 if (fs.existsSync(MAP_FILE)) {
   try {
-    mapData = JSON.parse(fs.readFileSync(MAP_FILE));
+    const raw = JSON.parse(fs.readFileSync(MAP_FILE));
+    if (Array.isArray(raw)) {
+      maps.default = raw;
+      sharedMap = 'default';
+    } else {
+      maps = raw.maps || {};
+      sharedMap = raw.sharedMap || Object.keys(maps)[0] || null;
+    }
   } catch (err) {
     console.error('Error reading map file:', err);
   }
+}
+currentMap = sharedMap;
+
+function saveMaps() {
+  fs.writeFile(
+    MAP_FILE,
+    JSON.stringify({ maps, sharedMap }, null, 2),
+    () => {}
+  );
 }
 
 // Load saved characters from file
@@ -145,14 +163,53 @@ io.on("connection", (socket) => {
   });
 
   socket.on("getMap", () => {
-    socket.emit("mapData", mapData);
+    if (sharedMap && maps[sharedMap]) {
+      socket.emit("mapData", maps[sharedMap]);
+    }
+  });
+
+  socket.on("getMapList", () => {
+    socket.emit("mapList", Object.keys(maps));
+  });
+
+  socket.on("loadMap", (name) => {
+    if (maps[name]) {
+      currentMap = name;
+      socket.emit("mapData", maps[name]);
+    }
+  });
+
+  socket.on("saveMap", ({ name, data }) => {
+    maps[name] = data;
+    currentMap = name;
+    if (!sharedMap) sharedMap = name;
+    saveMaps();
+  });
+
+  socket.on("deleteMap", (name) => {
+    if (maps[name]) {
+      delete maps[name];
+      if (sharedMap === name) sharedMap = Object.keys(maps)[0] || null;
+      if (currentMap === name) currentMap = sharedMap;
+      saveMaps();
+    }
+  });
+
+  socket.on("shareMap", (name) => {
+    if (maps[name]) {
+      sharedMap = name;
+      saveMaps();
+      io.emit("mapData", maps[name]);
+    }
   });
 
   socket.on("updateMapCell", ({ x, y, value }) => {
-    if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
-      mapData[y][x] = value;
-      fs.writeFile(MAP_FILE, JSON.stringify(mapData, null, 2), () => {});
-      io.emit("mapData", mapData);
+    const map = maps[currentMap];
+    if (map && map[y] && typeof map[y][x] !== "undefined") {
+      map[y][x] = value;
+      saveMaps();
+      if (currentMap === sharedMap) io.emit("mapData", map);
+      else socket.emit("mapData", map);
     }
   });
 

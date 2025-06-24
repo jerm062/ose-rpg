@@ -9,6 +9,7 @@ const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
 let mode = 'menu';
 let mapData = [];
+let mapName = '';
 let selectedTile = '#';
 
 const tiles = TILES;
@@ -53,6 +54,11 @@ function showMenu() {
     '5. View map\n' +
     '6. Edit map\n' +
     '7. Help\n' +
+    '8. Save map\n' +
+    '9. Load map\n' +
+    '10. Delete map\n' +
+    '11. Share map\n' +
+    '12. Save character\n' +
     '0. Return to menu';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -99,10 +105,12 @@ function handleInput(text) {
         mode = 'dmmsg';
         break;
       case '5':
+        mapName = 'shared';
         socket.emit('getMap');
         mode = 'viewmap';
         break;
       case '6':
+        mapName = 'shared';
         socket.emit('getMap');
         buildPalette();
         mode = 'editmap';
@@ -112,6 +120,26 @@ function handleInput(text) {
           'GM Help:\n/ready players send /ready or /unready in chat to toggle status.' +
           '\nUse menu numbers to access tools.\n0. Return';
         mode = 'help';
+        break;
+      case '8':
+        display.textContent = 'Enter name to save current map:';
+        mode = 'savemap';
+        break;
+      case '9':
+        socket.emit('getMapList');
+        mode = 'loadmaplist';
+        break;
+      case '10':
+        socket.emit('getMapList');
+        mode = 'deletemaplist';
+        break;
+      case '11':
+        socket.emit('getMapList');
+        mode = 'sharemaplist';
+        break;
+      case '12':
+        display.textContent = 'Enter character JSON:';
+        mode = 'savechar';
         break;
       default:
         showMenu();
@@ -133,6 +161,30 @@ function handleInput(text) {
     if (text === '0') {
       showMenu();
     }
+  } else if (mode === 'savemap') {
+    mapName = text;
+    socket.emit('saveMap', { name: text, data: mapData });
+    showMenu();
+  } else if (mode === 'loadmap') {
+    socket.emit('loadMap', text);
+    mapName = text;
+    buildPalette();
+    mode = 'editmap';
+  } else if (mode === 'deletemap') {
+    socket.emit('deleteMap', text);
+    showMenu();
+  } else if (mode === 'sharemap') {
+    socket.emit('shareMap', text);
+    showMenu();
+  } else if (mode === 'savechar') {
+    try {
+      const obj = JSON.parse(text);
+      socket.emit('saveCharacter', obj);
+      display.textContent = 'Character saved.';
+    } catch (e) {
+      display.textContent = 'Invalid JSON.';
+    }
+    mode = 'help';
   }
 }
 
@@ -151,6 +203,18 @@ socket.on('logUpdate', (entry) => {
 socket.on('mapData', (data) => {
   mapData = data;
   drawMap();
+  if (mode === 'viewmap') {
+    display.textContent = `Viewing map: ${mapName}\n0. Return`;
+  } else if (mode === 'editmap') {
+    display.textContent = `Editing map: ${mapName}\n0. Return`;
+  }
+});
+
+socket.on('mapList', (list) => {
+  display.textContent = 'Maps:\n' + list.join('\n') + '\nEnter name:';
+  if (mode === 'loadmaplist') mode = 'loadmap';
+  else if (mode === 'deletemaplist') mode = 'deletemap';
+  else if (mode === 'sharemaplist') mode = 'sharemap';
 });
 
 socket.on('readyList', (list) => {
