@@ -18,6 +18,8 @@
     }
     a { color: var(--link); }
     pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid var(--border); padding: 0.5rem; }
+    .readyBar { border: 1px solid var(--border); padding: 0.25rem; margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
+    .readyBar span { white-space: nowrap; }
     .char { color: deepskyblue; }
     .location { color: violet; }
     .item { color: gold; }
@@ -36,7 +38,7 @@
     <option value="modern">Modern</option>
   </select>
   <pre id="log"></pre>
-  <pre id="readyBox"></pre>
+  <div id="readyBox" class="readyBar"></div>
   <input id="chatInput" placeholder="message" autocomplete="off" />
   <p><a href="player.html">&#x2B05; Back</a></p>
 
@@ -77,9 +79,9 @@
       logEl.scrollTop = logEl.scrollHeight;
     });
     socket.on('readyList', (list) => {
-      readyBox.textContent = Object.entries(list)
-        .map(([n, r]) => `${r ? '[READY]' : '[    ]'} ${n}`)
-        .join('\n');
+      readyBox.innerHTML = Object.entries(list)
+        .map(([n, r]) => `<span>${r ? '[READY]' : '[    ]'} ${n}</span>`)
+        .join(' ');
     });
     function roll(expr) {
       const m = expr.match(/(\d*)d(\d+)([+-]\d+)?/i);

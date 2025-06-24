@@ -89,6 +89,7 @@ window.onload = function () {
         '4. Chat\n' +
         '5. Journal\n' +
         '6. Help\n' +
+        '7. Spells\n' +
         '(Selecting an option opens a new page)'
     );
     phase = 'menu';
@@ -117,13 +118,15 @@ window.onload = function () {
     printMessage(
       `Level:${currentChar.level} HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
     );
-    const enc = encumbrance(currentChar);
-    printMessage(`ENC:${enc.slots} MV:${enc.mv}`);
     showMenu();
   }
 
   function showItems() {
-    printMessage('Items: ' + (currentChar.inventory || []).join(', '));
+    const enc = encumbrance(currentChar);
+    printMessage(
+      'Items: ' + (currentChar.inventory || []).join(', ') +
+      `\nGold: ${currentChar.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`
+    );
     showMenu();
   }
 
@@ -256,6 +259,9 @@ window.onload = function () {
           break;
         case '6':
           showHelp();
+          break;
+        case '7':
+          window.location.href = 'spells.html';
           break;
         default:
           printMessage('Invalid choice.');
