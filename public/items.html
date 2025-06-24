@@ -54,10 +54,16 @@
     }
     socket.on('characterLoaded', (charData) => {
       const enc = encumbrance(charData);
+      const equipped = charData.equipped || [];
+      const stowed = (charData.inventory || []).filter(
+        (it) => !equipped.includes(it)
+      );
       display.textContent =
-        'Items:\n' +
-        (charData.inventory || []).join('\n') +
-        `\nGold: ${charData.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`;
+        'Equipped:\n' +
+        (equipped.join('\n') || '(none)') +
+        '\n\nStowed:\n' +
+        (stowed.join('\n') || '(none)') +
+        `\n\nGold: ${charData.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`;
     });
   </script>
 </body>

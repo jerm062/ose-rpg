@@ -159,8 +159,13 @@ window.onload = function () {
 
   function showItems() {
     const enc = encumbrance(currentChar);
+    const equipped = currentChar.equipped || [];
+    const stowed = (currentChar.inventory || []).filter(
+      (it) => !equipped.includes(it)
+    );
     printMessage(
-      'Items: ' + (currentChar.inventory || []).join(', ') +
+      'Equipped: ' + equipped.join(', ') +
+      '\nStowed: ' + stowed.join(', ') +
       `\nGold: ${currentChar.gold || 0}\nENC:${enc.slots} MV:${enc.mv}`
     );
     showMenu();
@@ -198,7 +203,7 @@ window.onload = function () {
       socket.emit('loadCharacter', text);
       phase = 'loading';
     } else if (phase === 'newName') {
-      currentChar = { name: text, inventory: [] };
+      currentChar = { name: text, inventory: [], equipped: [] };
       printMessage(`Hello ${text}! Choose a class:`);
       classes.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
       phase = 'chooseClass';
@@ -343,6 +348,7 @@ window.onload = function () {
 
   socket.on('characterLoaded', (charData) => {
     currentChar = charData;
+    currentChar.equipped = currentChar.equipped || [];
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     socket.emit('registerPlayer', charData.name);

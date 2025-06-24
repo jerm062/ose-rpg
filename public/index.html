@@ -26,8 +26,8 @@
   <p><a href="#" id="toggleTheme">Toggle Dark Mode</a></p>
   <script>
     const themeEl = document.getElementById('themeStylesheet');
-    const savedTheme = localStorage.getItem('theme') || 'theme-classic.css';
-    themeEl.href = savedTheme;
+    themeEl.href = 'theme-classic.css';
+    localStorage.setItem('theme', 'theme-classic.css');
     document.getElementById('toggleTheme').onclick = () => {
       const newTheme =
         themeEl.getAttribute('href') === 'theme-dark.css'
