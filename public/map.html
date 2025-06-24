@@ -34,36 +34,58 @@
     const canvas = document.getElementById('mapCanvas');
     const ctx = canvas.getContext('2d');
 
-    function drawMap(data) {
-      canvas.width = data[0].length * TILE_SIZE;
-      canvas.height = data.length * TILE_SIZE;
+    let mapData = [];
+    let tokens = {};
+    const name = localStorage.getItem('characterName') || '';
+
+    function render() {
+      if (!mapData.length) return;
+      canvas.width = mapData[0].length * TILE_SIZE;
+      canvas.height = mapData.length * TILE_SIZE;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      for (let y = 0; y < data.length; y++) {
-        for (let x = 0; x < data[y].length; x++) {
-          drawTile(ctx, data[y][x], x * TILE_SIZE, y * TILE_SIZE);
+      for (let y = 0; y < mapData.length; y++) {
+        for (let x = 0; x < mapData[y].length; x++) {
+          drawTile(ctx, mapData[y][x], x * TILE_SIZE, y * TILE_SIZE);
         }
       }
       ctx.strokeStyle = '#555';
-      for (let x = 0; x <= data[0].length; x++) {
+      for (let x = 0; x <= mapData[0].length; x++) {
         ctx.beginPath();
         ctx.moveTo(x * TILE_SIZE + 0.5, 0);
         ctx.lineTo(x * TILE_SIZE + 0.5, canvas.height);
         ctx.stroke();
       }
-      for (let y = 0; y <= data.length; y++) {
+      for (let y = 0; y <= mapData.length; y++) {
         ctx.beginPath();
         ctx.moveTo(0, y * TILE_SIZE + 0.5);
         ctx.lineTo(canvas.width, y * TILE_SIZE + 0.5);
         ctx.stroke();
       }
+      Object.values(tokens).forEach(t => {
+        if (tileImages[t.icon]) {
+          drawTile(ctx, t.icon, t.x * TILE_SIZE, t.y * TILE_SIZE);
+        }
+      });
     }
 
     (async () => {
       await loadTileset();
       const socket = io();
+      socket.emit('registerPlayer', name);
       socket.emit('getMap');
+      socket.emit('getPlayerPositions');
       socket.on('mapData', (data) => {
-        drawMap(data);
+        mapData = data;
+        render();
+      });
+      socket.on('playerPositions', (data) => {
+        tokens = data;
+        render();
+      });
+      canvas.addEventListener('click', (ev) => {
+        const x = Math.floor(ev.offsetX / TILE_SIZE);
+        const y = Math.floor(ev.offsetY / TILE_SIZE);
+        socket.emit('movePlayer', { name, x, y });
       });
     })();
   </script>
