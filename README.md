@@ -1,2 +1,2 @@
 # OSE RPG Web Game
-Multiplayer text-based RPG with DM tools and character persistence.
+Menu-driven multiplayer RPG with GM tools, shared campaign text, and character background generator.
