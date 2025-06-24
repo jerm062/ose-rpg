@@ -66,7 +66,8 @@ function showMainMenu() {
     '7. Story dialogue\n' +
     '8. Help\n' +
     '9. Add Lore\n' +
-    '10. Edit Data';
+    '10. Edit Data\n' +
+    '11. Calendar';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
@@ -112,6 +113,14 @@ function showDataMenu() {
   palette.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'dataMenu';
+}
+
+function showCalMenu(dayStr) {
+  display.textContent = `Calendar\nToday: ${dayStr}\n1. Advance day\n0. Return`;
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'calMenu';
 }
 
 function drawMap() {
@@ -189,6 +198,10 @@ function handleInput(text) {
         break;
       case '10':
         showDataMenu();
+        break;
+      case '11':
+        socket.emit('getDay');
+        mode = 'calwait';
         break;
       default:
         showMainMenu();
@@ -386,6 +399,14 @@ function handleInput(text) {
     socket.emit('editLog', text);
     display.textContent = 'Log updated.';
     mode = 'help';
+  } else if (mode === 'calMenu') {
+    if (text === '1') {
+      socket.emit('advanceDay');
+    }
+    if (text === '0' || text === '1') {
+      socket.emit('getDay');
+      mode = 'calwait';
+    }
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
@@ -440,6 +461,12 @@ socket.on('readyList', (list) => {
   readyDisplay.textContent = Object.entries(list)
     .map(([n, r]) => `${r ? '[READY]' : '[    ]'} ${n}`)
     .join('\n');
+});
+
+socket.on('currentDay', (d) => {
+  if (mode === 'calwait') {
+    showCalMenu(d);
+  }
 });
 
 canvas.addEventListener('click', (ev) => {
