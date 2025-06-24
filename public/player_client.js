@@ -38,10 +38,10 @@ window.onload = function () {
       printMessage(`Created new character ${text}.`);
       localStorage.setItem('characterName', currentChar.name);
       phase = 'playing';
-    } else if (phase === 'playing') {
-      printMessage('> ' + text);
-      // Placeholder for game commands
-    }
+      } else if (phase === 'playing') {
+        printMessage('> ' + text);
+        socket.emit('playerMessage', { name: currentChar.name, message: text });
+      }
   }
 
   socket.on('characterLoaded', (charData) => {
@@ -55,6 +55,10 @@ window.onload = function () {
     localStorage.removeItem('characterName');
     printMessage('No character found. Enter a new name to create one:');
     phase = 'createCharacter';
+  });
+
+  socket.on('logUpdate', (entry) => {
+    printMessage(entry);
   });
 
   if (!savedName) {

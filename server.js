@@ -10,9 +10,32 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 const CHAR_FILE = path.join(__dirname, 'player_data.json');
+const LOG_FILE = path.join(__dirname, 'campaign_log.txt');
+const MAP_FILE = path.join(__dirname, 'map_data.json');
+
+let campaignLog = [];
+let mapData = [];
 
 let savedCharacters = {};
 let sharedText = "Welcome to the campaign.";
+
+// Load campaign log
+if (fs.existsSync(LOG_FILE)) {
+  try {
+    campaignLog = fs.readFileSync(LOG_FILE, 'utf8').split(/\r?\n/).filter(Boolean);
+  } catch (err) {
+    console.error('Error reading log file:', err);
+  }
+}
+
+// Load map data
+if (fs.existsSync(MAP_FILE)) {
+  try {
+    mapData = JSON.parse(fs.readFileSync(MAP_FILE));
+  } catch (err) {
+    console.error('Error reading map file:', err);
+  }
+}
 
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
@@ -55,6 +78,36 @@ io.on("connection", (socket) => {
 
   socket.on("loadAllCharacters", () => {
     socket.emit("allCharacters", savedCharacters);
+  });
+
+  socket.on("playerMessage", ({ name, message }) => {
+    const entry = `[Player] ${name}: ${message}`;
+    campaignLog.push(entry);
+    fs.appendFile(LOG_FILE, entry + "\n", () => {});
+    io.emit("logUpdate", entry);
+  });
+
+  socket.on("dmMessage", (message) => {
+    const entry = `[DM]: ${message}`;
+    campaignLog.push(entry);
+    fs.appendFile(LOG_FILE, entry + "\n", () => {});
+    io.emit("logUpdate", entry);
+  });
+
+  socket.on("getCampaignLog", () => {
+    socket.emit("campaignLog", campaignLog);
+  });
+
+  socket.on("getMap", () => {
+    socket.emit("mapData", mapData);
+  });
+
+  socket.on("updateMapCell", ({ x, y, value }) => {
+    if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
+      mapData[y][x] = value;
+      fs.writeFile(MAP_FILE, JSON.stringify(mapData, null, 2), () => {});
+      io.emit("mapData", mapData);
+    }
   });
 
   socket.on("getSharedText", () => {
