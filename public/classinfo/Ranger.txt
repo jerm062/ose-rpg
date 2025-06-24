@@ -1,0 +1,6 @@
+Ranger
+Prime Requisite: STR and WIS
+Hit Dice: 1d8 per level to 9th
+Armor: Any, shield allowed
+Weapons: Any
+Rangers are wilderness trackers and hunters. They are skilled with bows and can follow trails with ease.

@@ -1,0 +1,6 @@
+Illusionist
+Prime Requisite: INT
+Hit Dice: 1d4 per level to 9th
+Armor: None
+Weapons: Dagger and staff
+Illusionists are magic-users specialising in deceptive spells and phantasms.

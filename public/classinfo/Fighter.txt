@@ -1,0 +1,6 @@
+Fighter
+Prime Requisite: STR
+Hit Dice: 1d8 per level to 9th
+Armor: Any, shield allowed
+Weapons: Any
+Fighters are professional warriors. They fight better than other classes and may use any equipment.

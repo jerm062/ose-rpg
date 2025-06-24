@@ -1,0 +1,6 @@
+Bard
+Prime Requisite: DEX and CHA
+Hit Dice: 1d4 per level to 10th
+Armor: Chain mail or lighter, shield allowed
+Weapons: Any
+Bards are wandering performers and lore keepers. Their music can inspire allies and confuse foes.

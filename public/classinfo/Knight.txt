@@ -1,0 +1,6 @@
+Knight
+Prime Requisite: STR
+Hit Dice: 1d8 per level to 9th
+Armor: Any, shield allowed
+Weapons: Any
+Knights are heavily armored champions sworn to a liege and bound by a code of honor.

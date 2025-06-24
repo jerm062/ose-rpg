@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Class Info</title>
+  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <style>
+    body {
+      font-family: monospace;
+      padding: 1rem;
+      margin: 0 auto;
+      max-width: 600px;
+      font-size: 18px;
+      line-height: 1.4;
+      background: var(--bg);
+      color: var(--fg);
+    }
+    a { color: var(--link); }
+  </style>
+</head>
+<body>
+  <script>
+    const theme = localStorage.getItem('theme') || 'theme-classic.css';
+    document.getElementById('themeStylesheet').href = theme;
+  </script>
+  <pre id="infoDisplay">Loading...</pre>
+  <p><a href="player.html">&#x2B05; Back</a></p>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const cls = params.get('c') || '';
+    fetch(`classinfo/${cls}.txt`)
+      .then(r => r.ok ? r.text() : 'Class not found.')
+      .then(t => { document.getElementById('infoDisplay').textContent = t; });
+  </script>
+</body>
+</html>

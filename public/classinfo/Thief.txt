@@ -1,0 +1,6 @@
+Thief
+Prime Requisite: DEX
+Hit Dice: 1d4 per level to 10th
+Armor: Leather, no shield
+Weapons: Any light
+Thieves excel at stealth, locks, and traps. They can backstab foes when attacking from surprise.

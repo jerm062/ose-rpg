@@ -38,6 +38,14 @@ let currentMap = null;
 let savedCharacters = {};
 let lore = { characters: [], deaths: [], events: [], locations: [] };
 let sharedText = "Welcome to the campaign.";
+
+// Ensure base data files exist
+if (!fs.existsSync(CHAR_FILE)) fs.writeFileSync(CHAR_FILE, '{}');
+if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '');
+if (!fs.existsSync(MAP_FILE))
+  fs.writeFileSync(MAP_FILE, JSON.stringify({ maps: {}, sharedMap: null }, null, 2));
+if (!fs.existsSync(LORE_FILE))
+  fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
 // Track which player sockets map to which names and ready status
 const playerNames = {};
 const readyState = {};
