@@ -16,10 +16,16 @@
       line-height: 1.4;
     }
     a { color: #00ffcc; }
+    input, button {
+      background: black;
+      color: lime;
+      border: 1px solid lime;
+      font-family: monospace;
+    }
   </style>
 </head>
 <body>
-  <pre id="charDisplay">Loading...</pre>
+  <div id="charDisplay">Loading...</div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -32,13 +38,27 @@
     } else {
       display.textContent = 'No character found.';
     }
+
+    let currentChar = null;
     socket.on('characterLoaded', (charData) => {
+      currentChar = charData;
       const s = charData.stats || {};
-      display.textContent =
-        charData.name + '\n' +
-        'Class: ' + charData.class + ' ' + charData.alignment + '\n' +
-        `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}\n` +
-        `HP:${charData.hp} AC:${charData.ac} XP:${charData.xp}/${charData.nextLevelXP}`;
+      display.innerHTML =
+        `<strong>${charData.name}</strong><br>` +
+        `Class: ${charData.class} ${charData.alignment}<br>` +
+        `Career: ${charData.career || ''}<br>` +
+        `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}<br>` +
+        `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +
+        `AC:${charData.ac} ` +
+        `XP:<input id="xpInput" type="number" value="${charData.xp}" style="width:80px">/${charData.nextLevelXP}<br>` +
+        `<button id="saveBtn">Save</button>`;
+
+      document.getElementById('saveBtn').onclick = () => {
+        currentChar.hp = parseInt(document.getElementById('hpInput').value, 10);
+        currentChar.xp = parseInt(document.getElementById('xpInput').value, 10);
+        socket.emit('saveCharacter', currentChar);
+        alert('Character saved');
+      };
     });
   </script>
 </body>
