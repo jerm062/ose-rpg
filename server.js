@@ -113,6 +113,14 @@ function formatDate() {
   return `${calendar.day} ${months[calendar.month]}`;
 }
 
+function saveAll() {
+  fs.writeFileSync(CHAR_FILE, JSON.stringify(savedCharacters, null, 2));
+  fs.writeFileSync(MAP_FILE, JSON.stringify({ maps, sharedMap }, null, 2));
+  fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
+  fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
+  fs.writeFileSync(CAL_FILE, JSON.stringify(calendar));
+}
+
 // Load saved characters from file
 if (fs.existsSync(CHAR_FILE)) {
   try {
