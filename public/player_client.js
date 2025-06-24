@@ -56,6 +56,23 @@ window.onload = function () {
     return d6() + d6() + d6();
   }
 
+  function encumbrance(char) {
+    let slots = (char.inventory || []).length;
+    const coins = char.gold || 0;
+    slots += Math.ceil(coins / 100);
+    if (char.inventory.includes('Plate Mail')) slots += 5;
+    if (char.inventory.includes('Chain Mail')) slots += 4;
+    if (char.inventory.includes('Leather Armor')) slots += 2;
+    if (char.inventory.includes('Shield')) slots += 1;
+
+    let mv;
+    if (slots <= 5) mv = '120\'';
+    else if (slots <= 10) mv = '90\'';
+    else if (slots <= 15) mv = '60\'';
+    else mv = '30\'';
+    return { slots, mv };
+  }
+
   function showMenu() {
     printMessage(
       'Main Menu\n' +
@@ -80,6 +97,8 @@ window.onload = function () {
     printMessage(
       `HP:${currentChar.hp} AC:${currentChar.ac} XP:${currentChar.xp}/${currentChar.nextLevelXP}`
     );
+    const enc = encumbrance(currentChar);
+    printMessage(`ENC:${enc.slots} MV:${enc.mv}`);
     showMenu();
   }
 
