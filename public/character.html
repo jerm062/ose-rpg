@@ -4,32 +4,50 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Character Sheet</title>
+  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
   <style>
     body {
-      background: black;
-      color: lime;
       font-family: monospace;
       padding: 1rem;
       margin: 0 auto;
       max-width: 600px;
       font-size: 18px;
       line-height: 1.4;
+      background: var(--bg);
+      color: var(--fg);
     }
-    a { color: #00ffcc; }
+    a { color: var(--link); }
     input, button {
-      background: black;
-      color: lime;
-      border: 1px solid lime;
+      background: var(--accent-bg);
+      color: var(--accent-fg);
+      border: 1px solid var(--border);
       font-family: monospace;
     }
+    #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
 <body>
+  <label for="themeSelect">Theme:</label>
+  <select id="themeSelect">
+    <option value="classic">Classic</option>
+    <option value="bw">Black & White</option>
+    <option value="modern">Modern</option>
+  </select>
   <div id="charDisplay">Loading...</div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    const sel = document.getElementById('themeSelect');
+    const savedTheme = localStorage.getItem('theme') || 'classic';
+    sel.value = savedTheme;
+    document.getElementById('themeStylesheet').href = `theme-${savedTheme}.css`;
+    sel.onchange = () => {
+      const t = sel.value;
+      localStorage.setItem('theme', t);
+      document.getElementById('themeStylesheet').href = `theme-${t}.css`;
+    };
+
     const display = document.getElementById('charDisplay');
     const socket = io();
     const name = localStorage.getItem('characterName');
@@ -55,6 +73,24 @@
       return { slots, mv };
     }
 
+    const xpTable = {
+      Fighter: [0, 2000, 4000, 8000, 16000, 32000, 64000, 120000, 240000, 360000],
+      Cleric: [0, 1500, 3000, 6000, 12000, 24000, 48000, 90000, 180000, 270000],
+      'Magic-User': [0, 2500, 5000, 10000, 20000, 40000, 80000, 150000, 300000, 450000],
+      Thief: [0, 1200, 2400, 4800, 9600, 20000, 40000, 70000, 110000, 160000]
+    };
+    const hitDie = { Fighter: 8, Cleric: 6, 'Magic-User': 4, Thief: 4 };
+
+    function checkLevelUp(char) {
+      while (char.xp >= char.nextLevelXP) {
+        char.level = (char.level || 1) + 1;
+        const hd = hitDie[char.class] || 6;
+        char.hp += Math.floor(Math.random() * hd) + 1;
+        const next = xpTable[char.class][char.level] || Infinity;
+        char.nextLevelXP = next;
+      }
+    }
+
     let currentChar = null;
     socket.on('characterLoaded', (charData) => {
       currentChar = charData;
@@ -67,7 +103,7 @@
       ).join('');
       display.innerHTML =
         `<strong id="previewName" style="color:${currentChar.nameColor}; font-family:${currentChar.nameFont}">${charData.name}</strong><br>` +
-        `Class: ${charData.class} ${charData.alignment}<br>` +
+        `Class: ${charData.class} ${charData.alignment} Level ${charData.level}<br>` +
         `Career: ${charData.career || ''}<br>` +
         `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}<br>` +
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +
@@ -95,6 +131,7 @@
         currentChar.xp = parseInt(document.getElementById('xpInput').value, 10);
         currentChar.nameColor = colorInput.value;
         currentChar.nameFont = fontSelect.value;
+        checkLevelUp(currentChar);
         socket.emit('saveCharacter', currentChar);
         alert('Character saved');
       };
