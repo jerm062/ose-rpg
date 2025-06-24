@@ -13,9 +13,9 @@ const cellSize = TILE_SIZE;
 let mode = 'main';
 let mapData = [];
 let mapName = '';
-let selectedTile = '#';
+let selectedTile = '';
 
-const tiles = TILES;
+let tiles = [];
 
 function buildPalette() {
   palette.innerHTML = '';
@@ -294,5 +294,10 @@ saveMapBtn.addEventListener('click', () => {
   socket.emit('saveMap', { name, data: mapData });
 });
 
-showMainMenu();
-input.focus();
+(async () => {
+  await loadTileset();
+  tiles = TILES;
+  selectedTile = TILES[0];
+  showMainMenu();
+  input.focus();
+})();

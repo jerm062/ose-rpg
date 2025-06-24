@@ -58,11 +58,14 @@
       }
     }
 
-    const socket = io();
-    socket.emit('getMap');
-    socket.on('mapData', (data) => {
-      drawMap(data);
-    });
+    (async () => {
+      await loadTileset();
+      const socket = io();
+      socket.emit('getMap');
+      socket.on('mapData', (data) => {
+        drawMap(data);
+      });
+    })();
   </script>
 </body>
 </html>
