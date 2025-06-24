@@ -17,7 +17,6 @@
       color: var(--fg);
     }
     a { color: var(--link); }
-    pre { white-space: pre-wrap; }
     #themeSelect { margin-bottom: 0.5rem; }
   </style>
 </head>
@@ -28,7 +27,7 @@
     <option value="bw">Black & White</option>
     <option value="modern">Modern</option>
   </select>
-  <pre id="mapDisplay">Loading...</pre>
+  <canvas id="mapCanvas" width="600" height="600"></canvas>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -42,11 +41,72 @@
       localStorage.setItem('theme', t);
       document.getElementById('themeStylesheet').href = `theme-${t}.css`;
     };
-    const display = document.getElementById('mapDisplay');
+    const canvas = document.getElementById('mapCanvas');
+    const ctx = canvas.getContext('2d');
+    const cellSize = 30;
+
+    const tiles = {
+      '.': (ctx, x, y, s) => { ctx.fillStyle = '#fff'; ctx.fillRect(x, y, s, s); },
+      '#': (ctx, x, y, s) => { ctx.fillStyle = '#000'; ctx.fillRect(x, y, s, s); },
+      't': (ctx, x, y, s) => {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + s * 0.45, y + s * 0.6, s * 0.1, s * 0.3);
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.2, y + s * 0.6);
+        ctx.lineTo(x + s * 0.5, y + s * 0.2);
+        ctx.lineTo(x + s * 0.8, y + s * 0.6);
+        ctx.closePath();
+        ctx.fill();
+      },
+      '~': (ctx, x, y, s) => {
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.1, y + s * 0.4);
+        ctx.quadraticCurveTo(x + s * 0.3, y + s * 0.5, x + s * 0.5, y + s * 0.4);
+        ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.3, x + s * 0.9, y + s * 0.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.1, y + s * 0.65);
+        ctx.quadraticCurveTo(x + s * 0.3, y + s * 0.75, x + s * 0.5, y + s * 0.65);
+        ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.55, x + s * 0.9, y + s * 0.65);
+        ctx.stroke();
+      },
+      '^': (ctx, x, y, s) => {
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.5, y + s * 0.2);
+        ctx.lineTo(x + s * 0.85, y + s * 0.8);
+        ctx.lineTo(x + s * 0.15, y + s * 0.8);
+        ctx.closePath();
+        ctx.fill();
+      },
+      'T': (ctx, x, y, s) => {
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x + s * 0.2, y + s * 0.45, s * 0.6, s * 0.35);
+        ctx.beginPath();
+        ctx.moveTo(x + s * 0.15, y + s * 0.45);
+        ctx.lineTo(x + s * 0.5, y + s * 0.2);
+        ctx.lineTo(x + s * 0.85, y + s * 0.45);
+        ctx.closePath();
+        ctx.fill();
+      },
+    };
+
+    function drawMap(data) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      for (let y = 0; y < data.length; y++) {
+        for (let x = 0; x < data[y].length; x++) {
+          const fn = tiles[data[y][x]] || tiles['.'];
+          fn(ctx, x * cellSize, y * cellSize, cellSize);
+        }
+      }
+    }
+
     const socket = io();
     socket.emit('getMap');
     socket.on('mapData', (data) => {
-      display.textContent = data.map(row => row.join('')).join('\n');
+      drawMap(data);
     });
   </script>
 </body>

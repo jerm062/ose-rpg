@@ -3,11 +3,83 @@ const display = document.getElementById('menuDisplay');
 const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
+const palette = document.getElementById('tilePalette');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = 30;
 let mode = 'menu';
 let mapData = [];
+let currentTile = '.';
+
+const tiles = {
+  '.': (ctx, x, y, s) => {
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x, y, s, s);
+  },
+  '#': (ctx, x, y, s) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x, y, s, s);
+  },
+  't': (ctx, x, y, s) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + s * 0.45, y + s * 0.6, s * 0.1, s * 0.3);
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.2, y + s * 0.6);
+    ctx.lineTo(x + s * 0.5, y + s * 0.2);
+    ctx.lineTo(x + s * 0.8, y + s * 0.6);
+    ctx.closePath();
+    ctx.fill();
+  },
+  '~': (ctx, x, y, s) => {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.1, y + s * 0.4);
+    ctx.quadraticCurveTo(x + s * 0.3, y + s * 0.5, x + s * 0.5, y + s * 0.4);
+    ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.3, x + s * 0.9, y + s * 0.4);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.1, y + s * 0.65);
+    ctx.quadraticCurveTo(x + s * 0.3, y + s * 0.75, x + s * 0.5, y + s * 0.65);
+    ctx.quadraticCurveTo(x + s * 0.7, y + s * 0.55, x + s * 0.9, y + s * 0.65);
+    ctx.stroke();
+  },
+  '^': (ctx, x, y, s) => {
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.5, y + s * 0.2);
+    ctx.lineTo(x + s * 0.85, y + s * 0.8);
+    ctx.lineTo(x + s * 0.15, y + s * 0.8);
+    ctx.closePath();
+    ctx.fill();
+  },
+  'T': (ctx, x, y, s) => {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x + s * 0.2, y + s * 0.45, s * 0.6, s * 0.35);
+    ctx.beginPath();
+    ctx.moveTo(x + s * 0.15, y + s * 0.45);
+    ctx.lineTo(x + s * 0.5, y + s * 0.2);
+    ctx.lineTo(x + s * 0.85, y + s * 0.45);
+    ctx.closePath();
+    ctx.fill();
+  },
+};
+
+function setupPalette() {
+  palette.innerHTML = '';
+  for (const key of Object.keys(tiles)) {
+    const c = document.createElement('canvas');
+    c.width = c.height = cellSize;
+    const cctx = c.getContext('2d');
+    tiles[key](cctx, 0, 0, cellSize);
+    c.style.border = key === currentTile ? '2px solid red' : '1px solid var(--border)';
+    c.addEventListener('click', () => {
+      currentTile = key;
+      setupPalette();
+    });
+    palette.appendChild(c);
+  }
+}
 
 function colorize(text) {
   return text
@@ -31,6 +103,7 @@ function showMenu() {
     '7. Help\n' +
     '0. Return to menu';
   canvas.style.display = 'none';
+  palette.style.display = 'none';
   mode = 'menu';
 }
 
@@ -38,11 +111,13 @@ function drawMap() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < mapData.length; y++) {
     for (let x = 0; x < mapData[y].length; x++) {
-      ctx.fillStyle = mapData[y][x] === '#' ? '#555' : '#222';
-      ctx.fillRect(x * cellSize, y * cellSize, cellSize - 1, cellSize - 1);
+      const ch = mapData[y][x];
+      const fn = tiles[ch] || tiles['.'];
+      fn(ctx, x * cellSize, y * cellSize, cellSize);
     }
   }
   canvas.style.display = 'block';
+  palette.style.display = 'block';
 }
 
 input.addEventListener('keydown', (ev) => {
@@ -121,6 +196,7 @@ socket.on('logUpdate', (entry) => {
 
 socket.on('mapData', (data) => {
   mapData = data;
+  setupPalette();
   drawMap();
 });
 
@@ -135,11 +211,12 @@ canvas.addEventListener('click', (ev) => {
   const x = Math.floor(ev.offsetX / cellSize);
   const y = Math.floor(ev.offsetY / cellSize);
   if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
-    mapData[y][x] = mapData[y][x] === '.' ? '#' : '.';
+    mapData[y][x] = currentTile;
     drawMap();
     socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
   }
 });
 
 showMenu();
+setupPalette();
 input.focus();
