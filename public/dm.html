@@ -24,10 +24,19 @@
       right: 0.5rem;
       top: 0.5rem;
       bottom: 0.5rem;
-      width: 60px;
+      width: 200px;
       overflow-y: auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+      grid-auto-rows: 30px;
+      gap: 2px;
     }
-    .tileBtn { border: 1px solid var(--border); cursor: pointer; margin-right: 2px; }
+    .tileBtn {
+      border: 1px solid var(--border);
+      cursor: pointer;
+      width: 30px;
+      height: 30px;
+    }
     .tileSel { outline: 2px solid red; }
     .char { color: deepskyblue; }
     .location { color: violet; }
