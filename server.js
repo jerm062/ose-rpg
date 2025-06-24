@@ -1,5 +1,5 @@
 
-// server.js (Socket.IO + Express + character save/load to file)
+// server.js (with character deletion support)
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
@@ -48,6 +48,18 @@ io.on('connection', (socket) => {
       if (err) console.error("Error saving character data:", err);
       else console.log(`Character saved: ${charData.name}`);
     });
+  });
+
+  socket.on('deleteCharacter', (name) => {
+    if (savedCharacters[name]) {
+      delete savedCharacters[name];
+      fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
+        if (err) console.error("Error deleting character data:", err);
+        else console.log(`Character deleted: ${name}`);
+      });
+    } else {
+      console.log(`Character not found for deletion: ${name}`);
+    }
   });
 
   socket.on('disconnect', () => {

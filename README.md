@@ -1,2 +1,2 @@
 # OSE RPG Web Game
-Multiplayer text-based adventure powered by Node + Socket.IO.
+Multiplayer text-based RPG with DM tools and character persistence.
