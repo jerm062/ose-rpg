@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+/* Revert to default monospace fonts */
 :root {
   --bg: #000;
   --fg: #fff;
@@ -11,7 +11,7 @@
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: 'Press Start 2P', monospace;
+  font-family: monospace;
   font-size: 12px !important;
   line-height: 1.4;
 }
@@ -19,7 +19,7 @@ body {
 input,
 button,
 textarea {
-  font-family: 'Press Start 2P', monospace;
+  font-family: monospace;
   font-size: 12px;
   background: var(--accent-bg);
   color: var(--accent-fg);

@@ -118,6 +118,7 @@
         `<strong>${charData.name}</strong><br>` +
         `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
         `Career: ${charData.career || ''}<br>` +
+        (charData.homeTown && charData.homeTown.name ? `Hometown: ${charData.homeTown.name}<br>` : '') +
         (charData.motivation ? `Motivation: ${charData.motivation}<br>` : '') +
         `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}<br>` +
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +

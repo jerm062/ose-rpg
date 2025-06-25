@@ -27,6 +27,11 @@ window.onload = function () {
   const alignments = ['Lawful', 'Neutral', 'Chaotic'];
   const religionChoices = ['None', 'Monotheistic', 'Polytheistic'];
   const motivations = ['Wealth', 'Spirituality', 'Glory', 'Vengeance', 'Power'];
+  const settlementBiome = ['Forest','Mountain','Plains','Island','Coast','Desert','Fjord','Swamp'];
+  const settlementTheme = ['Merchants','Arts','Religion','Warfare','Magic','Corruption','Mining','Crafts','Animals','Farming','Alcohol','Spices'];
+  const settlementAmbition = ['Bounty','Conquest','Control','Conversion','Division','Dominance','Exploration','Fealty','Independence','Knowledge','Natural Harmony','Peace','Power','Purity','Recognition','Return','Security','Stability','Unification','Wealth'];
+  const settlementLandmark = ['Orb','Floating Object(s)','Portal','Fallen Columns','Petrified Giant(s)','Maze','Astral Garden','Titanic Fossils','Tower','Coliseum','Glittering Pond','Obelisk(s)'];
+  const settlementGovernment = ['Anarchy','Argentocracy','Aristarachy','Aristocracy','Autocracy','Cryptarchy','Democracy','Demonocracy','Ecclesiarchy','Ethnocracy','Gerontocracy','Gynocracy','Heroarchy','Heterarchy','Matriarchy','Militocracy','Monarchy','Oligarchy','Patriarchy','Pedantocracy','Pedocracy','Phallocracy','Plutocracy','Prophetocracy','Quangocracy','Statocracy','Thearchy','Theocracy','Tritheocracy','Xenocracy'];
   const careers = [
     { name: 'Acolyte', items: ['candlestick', 'censer', 'incense'] },
     { name: 'Acrobat', items: ['flash powder', 'balls', 'lamp oil'] },
@@ -454,18 +459,21 @@ window.onload = function () {
       }
     } else if (phase === 'religionNone') {
       currentChar.religion.answer = text;
-      askMotivation();
+      askHomeTown();
     } else if (phase === 'religionMono') {
       currentChar.religion.deity = text;
       currentChar.inventory.push('religious relic');
       printMessage('You receive a religious relic.');
-      askMotivation();
+      askHomeTown();
     } else if (phase === 'religionPolyName') {
       currentChar.religion.deity = text;
       printMessage('What are they the God of?');
       phase = 'religionPolyDomain';
     } else if (phase === 'religionPolyDomain') {
       currentChar.religion.domain = text;
+      askHomeTown();
+    } else if (phase === 'enterTownName') {
+      currentChar.homeTown.name = text;
       askMotivation();
     } else if (phase === 'chooseMotivation') {
       const idx = parseInt(text) - 1;
@@ -620,6 +628,20 @@ window.onload = function () {
     printMessage('Shop Menu:\n1. Adventuring Gear\n2. Weapons & Armor\n0. Finish');
   }
 
+  function askHomeTown() {
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const biome = pick(settlementBiome);
+    const theme = pick(settlementTheme);
+    const ambition = pick(settlementAmbition);
+    const landmark = pick(settlementLandmark);
+    const government = pick(settlementGovernment);
+    currentChar.homeTown = { biome, theme, ambition, landmark, government };
+    printMessage('Where are you from?');
+    printMessage(`Biome: ${biome}\nTheme: ${theme}\nAmbition: ${ambition}\nLandmark: ${landmark}\nGovernment: ${government}`);
+    printMessage('Name this settlement:');
+    phase = 'enterTownName';
+  }
+
   function askMotivation() {
     printMessage('What brings you to The Bloclands?');
     motivations.forEach((m, i) => printMessage(`${i + 1}. ${m}`));
@@ -645,6 +667,11 @@ window.onload = function () {
 
   function finalizeCharacter() {
     socket.emit('saveCharacter', currentChar);
+    if (currentChar.homeTown && currentChar.homeTown.name) {
+      const ht = currentChar.homeTown;
+      const summary = `${ht.name} - ${ht.biome}, ${ht.theme}, seeks ${ht.ambition}, landmark: ${ht.landmark}, government: ${ht.government}`;
+      socket.emit('addLore', { chapter: 'locations', text: summary });
+    }
     printMessage('Character creation complete!');
     phase = 'loading';
   }
