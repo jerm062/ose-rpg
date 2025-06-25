@@ -55,31 +55,63 @@ const playerNames = {};
 const readyState = {};
 const playerPositions = {};
 
-// Load campaign log
-if (fs.existsSync(LOG_FILE)) {
-  try {
-    campaignLog = fs.readFileSync(LOG_FILE, 'utf8').split(/\r?\n/).filter(Boolean);
-  } catch (err) {
-    console.error('Error reading log file:', err);
+function loadAll() {
+  // Load campaign log
+  if (fs.existsSync(LOG_FILE)) {
+    try {
+      campaignLog = fs
+        .readFileSync(LOG_FILE, 'utf8')
+        .split(/\r?\n/)
+        .filter(Boolean);
+    } catch (err) {
+      console.error('Error reading log file:', err);
+    }
+  }
+
+  // Load map data (supports multiple maps)
+  if (fs.existsSync(MAP_FILE)) {
+    try {
+      const raw = JSON.parse(fs.readFileSync(MAP_FILE));
+      if (Array.isArray(raw)) {
+        maps.default = raw;
+        sharedMap = 'default';
+      } else {
+        maps = raw.maps || {};
+        sharedMap = raw.sharedMap || Object.keys(maps)[0] || null;
+      }
+    } catch (err) {
+      console.error('Error reading map file:', err);
+    }
+  }
+  currentMap = sharedMap;
+
+  // Load saved characters from file
+  if (fs.existsSync(CHAR_FILE)) {
+    try {
+      savedCharacters = JSON.parse(fs.readFileSync(CHAR_FILE));
+      Object.values(savedCharacters).forEach((c) => {
+        c.inventory = c.inventory || [];
+        c.equipped = c.equipped || [];
+        c.status = c.status || [];
+        c.beersDrank = c.beersDrank || 0;
+      });
+    } catch (err) {
+      console.error('Error reading character file:', err);
+    }
+  }
+
+  // Load lore data
+  if (fs.existsSync(LORE_FILE)) {
+    try {
+      lore = JSON.parse(fs.readFileSync(LORE_FILE));
+      lore.religion = lore.religion || [];
+    } catch (err) {
+      console.error('Error reading lore file:', err);
+    }
   }
 }
 
-// Load map data (supports multiple maps)
-if (fs.existsSync(MAP_FILE)) {
-  try {
-    const raw = JSON.parse(fs.readFileSync(MAP_FILE));
-    if (Array.isArray(raw)) {
-      maps.default = raw;
-      sharedMap = 'default';
-    } else {
-      maps = raw.maps || {};
-      sharedMap = raw.sharedMap || Object.keys(maps)[0] || null;
-    }
-  } catch (err) {
-    console.error('Error reading map file:', err);
-  }
-}
-currentMap = sharedMap;
+loadAll();
 
 function saveMaps() {
   fs.writeFile(
@@ -142,31 +174,6 @@ function exportAll() {
   exportMaps();
   exportLore();
   fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
-}
-
-// Load saved characters from file
-if (fs.existsSync(CHAR_FILE)) {
-  try {
-    savedCharacters = JSON.parse(fs.readFileSync(CHAR_FILE));
-    Object.values(savedCharacters).forEach((c) => {
-      c.inventory = c.inventory || [];
-      c.equipped = c.equipped || [];
-      c.status = c.status || [];
-      c.beersDrank = c.beersDrank || 0;
-    });
-  } catch (err) {
-    console.error("Error reading character file:", err);
-  }
-}
-
-// Load lore data
-if (fs.existsSync(LORE_FILE)) {
-  try {
-    lore = JSON.parse(fs.readFileSync(LORE_FILE));
-    lore.religion = lore.religion || [];
-  } catch (err) {
-    console.error("Error reading lore file:", err);
-  }
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
@@ -599,6 +606,25 @@ io.on("connection", (socket) => {
 
   socket.on("exportAll", () => {
     exportAll();
+  });
+
+  socket.on("loadAllData", () => {
+    loadAll();
+    socket.emit("allCharacters", savedCharacters);
+    io.emit("campaignLog", campaignLog);
+    if (sharedMap && maps[sharedMap]) {
+      io.emit("mapData", maps[sharedMap]);
+    }
+    io.emit("loreData", {
+      characters: [
+        ...lore.characters,
+        ...Object.values(savedCharacters).map((c) => `${c.name} - ${c.class}`),
+      ],
+      deaths: lore.deaths,
+      events: lore.events,
+      locations: lore.locations,
+      religion: lore.religion,
+    });
   });
 
   socket.on("exportCharacter", (name) => {
