@@ -11,7 +11,11 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 // Persist user generated content under the data directory
-const DATA_DIR = path.join(__dirname, 'data');
+// The location can be overridden by setting the OSE_RPG_DATA_DIR
+// environment variable, allowing saves on a separate disk
+const DATA_DIR = process.env.OSE_RPG_DATA_DIR
+  ? path.resolve(process.env.OSE_RPG_DATA_DIR)
+  : path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR);
 }
