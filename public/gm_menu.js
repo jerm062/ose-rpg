@@ -190,7 +190,7 @@ function handleInput(text) {
         mode = 'help';
         break;
       case '9':
-        display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations\n5. Religion';
+        display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations\n5. Religion\n6. Religion Death';
         mode = 'loreChapter';
         break;
       case '10':
@@ -357,11 +357,17 @@ function handleInput(text) {
         display.textContent = 'Enter lore for Religion:';
         mode = 'loreEntryReligion';
         break;
+      case '6':
+        display.textContent = 'Enter lore for Religion Death:';
+        mode = 'loreEntryReligionDeath';
+        break;
       default:
         showMainMenu();
     }
   } else if (mode.startsWith('loreEntry')) {
-    const chapter = mode.replace('loreEntry', '').toLowerCase();
+    let chapter = mode.replace('loreEntry', '');
+    if (chapter === 'ReligionDeath') chapter = 'religionDeath';
+    else chapter = chapter.toLowerCase();
     socket.emit('addLore', { chapter, text });
     display.textContent = 'Lore added.';
     mode = 'help';
@@ -432,7 +438,10 @@ function handleInput(text) {
     }
     mode = 'help';
   } else if (mode === 'editLoreChapterInput') {
-    charNameTemp = text.toLowerCase();
+    charNameTemp = text;
+    if (charNameTemp !== 'religionDeath') {
+      charNameTemp = charNameTemp.toLowerCase();
+    }
     display.textContent = `Enter JSON array for ${charNameTemp}:`;
     mode = 'editLoreData';
   } else if (mode === 'editLoreData') {

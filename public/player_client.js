@@ -459,18 +459,21 @@ window.onload = function () {
       }
     } else if (phase === 'religionNone') {
       currentChar.religion.answer = text;
-      askHomeTown();
+      askDeathTaker();
     } else if (phase === 'religionMono') {
       currentChar.religion.deity = text;
       currentChar.inventory.push('religious relic');
       printMessage('You receive a religious relic.');
-      askHomeTown();
+      askDeathTaker();
     } else if (phase === 'religionPolyName') {
       currentChar.religion.deity = text;
       printMessage('What are they the God of?');
       phase = 'religionPolyDomain';
     } else if (phase === 'religionPolyDomain') {
       currentChar.religion.domain = text;
+      askDeathTaker();
+    } else if (phase === 'deathTaker') {
+      currentChar.religion.death = text;
       askHomeTown();
     } else if (phase === 'enterTownName') {
       currentChar.homeTown.name = text;
@@ -654,6 +657,11 @@ window.onload = function () {
   function askFavoriteFood() {
     printMessage('What is your favorite food?');
     phase = 'favoriteFood';
+  }
+
+  function askDeathTaker() {
+    printMessage('Who takes you when you die?');
+    phase = 'deathTaker';
   }
 
   function canUseItem(it) {
