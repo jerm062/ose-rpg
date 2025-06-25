@@ -22,6 +22,9 @@ Campaign data is automatically exported to the appropriate subfolders whenever i
 The GM Data Menu now includes an **Export all** option and players can select
 **Export Character** from the main menu to write their character file to
 `data/characters`.
+The Data Menu also has a **Load all** option to reload characters, maps, lore
+and chat logs from the save directory, which can be outside the main project by
+setting the `OSE_RPG_DATA_DIR` environment variable.
 
 **GM Map Maker**
 - Choose **Map Menu** from the GM interface.

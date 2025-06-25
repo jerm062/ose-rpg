@@ -112,6 +112,7 @@ function showDataMenu() {
     '4. Edit log\n' +
     '5. Save all\n' +
     '6. Export all\n' +
+    '7. Load all\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -390,6 +391,11 @@ function handleInput(text) {
       case '6':
         socket.emit('exportAll');
         display.textContent = 'Data exported.';
+        mode = 'help';
+        break;
+      case '7':
+        socket.emit('loadAllData');
+        display.textContent = 'Data loaded.';
         mode = 'help';
         break;
       case '0':
