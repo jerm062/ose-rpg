@@ -7,7 +7,6 @@ window.onload = function () {
 
   let phase = 'enterName';
   let currentChar = null;
-  let classOptions = classes.slice();
 
   const classes = [
     'Fighter',
@@ -23,6 +22,7 @@ window.onload = function () {
     'Paladin',
     'Ranger'
   ];
+  let classOptions = classes.slice();
   const alignments = ['Lawful', 'Neutral', 'Chaotic'];
   const careers = [
     { name: 'Acolyte', items: ['candlestick', 'censer', 'incense'] },
