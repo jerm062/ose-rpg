@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 :root {
   --bg: #000;
   --fg: #fff;
@@ -7,6 +8,18 @@
   --accent-fg: #fff;
 }
 body {
-  font-family: "Courier New", monospace;
-  font-size: 14px;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+}
+input,
+button,
+textarea {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  background: var(--accent-bg);
+  color: var(--accent-fg);
+  border: 1px solid var(--border);
 }

@@ -5,6 +5,10 @@ OSE RPG Full Bundle
 2. Start the server with `node server.js`.
 3. Visit [http://localhost:3000/player.html](http://localhost:3000/player.html) in your browser.
 
+You can override where campaign data is saved by setting the `DATA_DIR`
+environment variable. This is handy when pointing the server at a persistent
+Render disk.
+
 All user generated content is written under `data/`.
 Files are organised into persistent folders:
 
@@ -19,6 +23,8 @@ Campaign data is automatically exported to the appropriate subfolders whenever i
 The GM Data Menu now includes an **Export all** option and players can select
 **Export Character** from the main menu to write their character file to
 `data/characters`.
+The server also writes all data to disk every few minutes and when it receives a
+shutdown signal.
 
 **GM Map Maker**
 - Choose **Map Menu** from the GM interface.
