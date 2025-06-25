@@ -6,6 +6,9 @@ OSE RPG Full Bundle
 3. Visit [http://localhost:3000/player.html](http://localhost:3000/player.html) in your browser.
 
 All user generated content is written under `data/`.
+The location can be overridden by setting the `OSE_RPG_DATA_DIR`
+environment variable before starting the server. This allows you to keep
+campaign files on a separate disk.
 Files are organised into persistent folders:
 
 - `data/characters` - saved player characters
