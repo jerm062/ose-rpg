@@ -26,6 +26,7 @@ window.onload = function () {
   let classOptions = classes.slice();
   const alignments = ['Lawful', 'Neutral', 'Chaotic'];
   const religionChoices = ['None', 'Monotheistic', 'Polytheistic'];
+  const motivations = ['Wealth', 'Spirituality', 'Glory', 'Vengeance', 'Power'];
   const careers = [
     { name: 'Acolyte', items: ['candlestick', 'censer', 'incense'] },
     { name: 'Acrobat', items: ['flash powder', 'balls', 'lamp oil'] },
@@ -289,6 +290,9 @@ window.onload = function () {
     printMessage(
       `Career: ${currentChar.career}`
     );
+    if (currentChar.motivation) {
+      printMessage(`Motivation: ${currentChar.motivation}`);
+    }
     printMessage(
       `STR:${s.STR} DEX:${s.DEX} CON:${s.CON} INT:${s.INT} WIS:${s.WIS} CHA:${s.CHA}`
     );
@@ -450,25 +454,29 @@ window.onload = function () {
       }
     } else if (phase === 'religionNone') {
       currentChar.religion.answer = text;
-      printMessage('Click the Roll Career button to get your career.');
-      careerButton.style.display = 'inline-block';
-      phase = 'chooseCareer';
+      askMotivation();
     } else if (phase === 'religionMono') {
       currentChar.religion.deity = text;
       currentChar.inventory.push('religious relic');
       printMessage('You receive a religious relic.');
-      printMessage('Click the Roll Career button to get your career.');
-      careerButton.style.display = 'inline-block';
-      phase = 'chooseCareer';
+      askMotivation();
     } else if (phase === 'religionPolyName') {
       currentChar.religion.deity = text;
       printMessage('What are they the God of?');
       phase = 'religionPolyDomain';
     } else if (phase === 'religionPolyDomain') {
       currentChar.religion.domain = text;
-      printMessage('Click the Roll Career button to get your career.');
-      careerButton.style.display = 'inline-block';
-      phase = 'chooseCareer';
+      askMotivation();
+    } else if (phase === 'chooseMotivation') {
+      const idx = parseInt(text) - 1;
+      if (motivations[idx]) {
+        currentChar.motivation = motivations[idx];
+        printMessage('Click the Roll Career button to get your career.');
+        careerButton.style.display = 'inline-block';
+        phase = 'chooseCareer';
+      } else {
+        printMessage('Invalid choice.');
+      }
     } else if (phase === 'shopMenu') {
       if (text === '1') {
         showShop();
@@ -610,6 +618,12 @@ window.onload = function () {
 
   function showShopMenu() {
     printMessage('Shop Menu:\n1. Adventuring Gear\n2. Weapons & Armor\n0. Finish');
+  }
+
+  function askMotivation() {
+    printMessage('What brings you to The Bloclands?');
+    motivations.forEach((m, i) => printMessage(`${i + 1}. ${m}`));
+    phase = 'chooseMotivation';
   }
 
   function canUseItem(it) {
