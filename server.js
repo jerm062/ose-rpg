@@ -11,9 +11,11 @@ const io = new Server(server);
 const PORT = process.env.PORT || 3000;
 
 // Persist user generated content under the data directory
-const DATA_DIR = path.join(__dirname, 'data');
+// Allow overriding the path via the DATA_DIR environment variable so a
+// persistent Render disk can be mounted there.
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 if (!fs.existsSync(DATA_DIR)) {
-  fs.mkdirSync(DATA_DIR);
+  fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
 // Sub directories for different types of campaign data
@@ -619,4 +621,15 @@ io.on("connection", (socket) => {
 
 server.listen(PORT, () => {
   console.log(`OSE RPG server running on port ${PORT}`);
+});
+
+// Periodically export all data to disk in case the process is restarted.
+setInterval(exportAll, 5 * 60 * 1000);
+
+// Ensure data is exported before shutting down.
+['SIGINT', 'SIGTERM'].forEach((sig) => {
+  process.on(sig, () => {
+    exportAll();
+    process.exit();
+  });
 });
