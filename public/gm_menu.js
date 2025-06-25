@@ -189,7 +189,7 @@ function handleInput(text) {
         mode = 'help';
         break;
       case '9':
-        display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations';
+        display.textContent = 'Add Lore\n1. Characters\n2. Deaths\n3. Events\n4. Locations\n5. Religion';
         mode = 'loreChapter';
         break;
       case '10':
@@ -351,6 +351,10 @@ function handleInput(text) {
       case '4':
         display.textContent = 'Enter lore for Locations:';
         mode = 'loreEntryLocations';
+        break;
+      case '5':
+        display.textContent = 'Enter lore for Religion:';
+        mode = 'loreEntryReligion';
         break;
       default:
         showMainMenu();

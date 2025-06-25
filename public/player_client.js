@@ -7,6 +7,7 @@ window.onload = function () {
 
   let phase = 'enterName';
   let currentChar = null;
+  let pendingClass = null;
 
   const classes = [
     'Fighter',
@@ -24,6 +25,7 @@ window.onload = function () {
   ];
   let classOptions = classes.slice();
   const alignments = ['Lawful', 'Neutral', 'Chaotic'];
+  const religionChoices = ['None', 'Monotheistic', 'Polytheistic'];
   const careers = [
     { name: 'Acolyte', items: ['candlestick', 'censer', 'incense'] },
     { name: 'Acrobat', items: ['flash powder', 'balls', 'lamp oil'] },
@@ -398,23 +400,75 @@ window.onload = function () {
       }
       const idx = parseInt(text) - 1;
       if (classOptions[idx]) {
-        currentChar.class = classOptions[idx];
+        pendingClass = classOptions[idx];
+        printMessage(`Confirm ${pendingClass}? (y/n)`);
+        phase = 'confirmClass';
+      } else {
+        printMessage('Invalid choice.');
+      }
+    } else if (phase === 'confirmClass') {
+      if (text.toLowerCase().startsWith('y')) {
+        currentChar.class = pendingClass;
+        pendingClass = null;
         printMessage('Choose an alignment:');
         alignments.forEach((a, i) => printMessage(`${i + 1}. ${a}`));
         phase = 'chooseAlignment';
       } else {
-        printMessage('Invalid choice.');
+        pendingClass = null;
+        printMessage('Choose a class:');
+        classOptions.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
+        phase = 'chooseClass';
       }
     } else if (phase === 'chooseAlignment') {
       const idx = parseInt(text) - 1;
       if (alignments[idx]) {
         currentChar.alignment = alignments[idx];
-        printMessage('Click the Roll Career button to get your career.');
-        careerButton.style.display = 'inline-block';
-        phase = 'chooseCareer';
+        printMessage('Religious beliefs?\n1. None\n2. Monotheistic\n3. Polytheistic');
+        phase = 'chooseReligion';
       } else {
         printMessage('Invalid choice.');
       }
+    } else if (phase === 'chooseReligion') {
+      const idx = parseInt(text) - 1;
+      if (religionChoices[idx]) {
+        const choice = religionChoices[idx];
+        if (choice === 'None') {
+          currentChar.religion = { type: 'none' };
+          printMessage('Where does your spirituality rest lost one?');
+          phase = 'religionNone';
+        } else if (choice === 'Monotheistic') {
+          currentChar.religion = { type: 'monotheistic' };
+          printMessage('What do you call your God?');
+          phase = 'religionMono';
+        } else {
+          currentChar.religion = { type: 'polytheistic' };
+          printMessage('Who is the most benevolent of Gods?');
+          phase = 'religionPolyName';
+        }
+      } else {
+        printMessage('Invalid choice.');
+      }
+    } else if (phase === 'religionNone') {
+      currentChar.religion.answer = text;
+      printMessage('Click the Roll Career button to get your career.');
+      careerButton.style.display = 'inline-block';
+      phase = 'chooseCareer';
+    } else if (phase === 'religionMono') {
+      currentChar.religion.deity = text;
+      currentChar.inventory.push('religious relic');
+      printMessage('You receive a religious relic.');
+      printMessage('Click the Roll Career button to get your career.');
+      careerButton.style.display = 'inline-block';
+      phase = 'chooseCareer';
+    } else if (phase === 'religionPolyName') {
+      currentChar.religion.deity = text;
+      printMessage('What are they the God of?');
+      phase = 'religionPolyDomain';
+    } else if (phase === 'religionPolyDomain') {
+      currentChar.religion.domain = text;
+      printMessage('Click the Roll Career button to get your career.');
+      careerButton.style.display = 'inline-block';
+      phase = 'chooseCareer';
     } else if (phase === 'shopMenu') {
       if (text === '1') {
         showShop();

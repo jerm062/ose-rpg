@@ -36,7 +36,7 @@ let sharedMap = null;
 let currentMap = null;
 
 let savedCharacters = {};
-let lore = { characters: [], deaths: [], events: [], locations: [] };
+let lore = { characters: [], deaths: [], events: [], locations: [], religion: [] };
 let sharedText = "Welcome to the campaign.";
 
 // Ensure base data files exist
@@ -127,6 +127,10 @@ function exportLore() {
     path.join(LORE_DIR, 'locations.json'),
     JSON.stringify(lore.locations, null, 2)
   );
+  fs.writeFileSync(
+    path.join(LORE_DIR, 'religion.json'),
+    JSON.stringify(lore.religion, null, 2)
+  );
 }
 
 function exportAll() {
@@ -155,6 +159,7 @@ if (fs.existsSync(CHAR_FILE)) {
 if (fs.existsSync(LORE_FILE)) {
   try {
     lore = JSON.parse(fs.readFileSync(LORE_FILE));
+    lore.religion = lore.religion || [];
   } catch (err) {
     console.error("Error reading lore file:", err);
   }
@@ -222,6 +227,14 @@ io.on("connection", (socket) => {
     charData.equipped = charData.equipped || [];
     charData.status = charData.status || [];
     charData.beersDrank = charData.beersDrank || 0;
+    if (charData.religion) {
+      const entry = `${charData.name}: ${charData.religion.type}` +
+        (charData.religion.deity ? ` - ${charData.religion.deity}` : "");
+      const idx = lore.religion.findIndex((r) => r.startsWith(`${charData.name}:`));
+      if (idx !== -1) lore.religion[idx] = entry; else lore.religion.push(entry);
+      saveLore();
+      exportLore();
+    }
     savedCharacters[charData.name] = charData;
     fs.writeFile(CHAR_FILE, JSON.stringify(savedCharacters, null, 2), (err) => {
       if (err) console.error("Save error:", err);
@@ -342,6 +355,7 @@ io.on("connection", (socket) => {
         deaths: lore.deaths,
         events: lore.events,
         locations: lore.locations,
+        religion: lore.religion,
       });
     }
   });
@@ -541,6 +555,7 @@ io.on("connection", (socket) => {
       deaths: lore.deaths,
       events: lore.events,
       locations: lore.locations,
+      religion: lore.religion,
     });
   });
 
@@ -559,6 +574,7 @@ io.on("connection", (socket) => {
         deaths: lore.deaths,
         events: lore.events,
         locations: lore.locations,
+        religion: lore.religion,
       });
     }
   });
