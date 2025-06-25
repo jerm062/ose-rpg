@@ -34,6 +34,7 @@
     function render(data) {
       content.innerHTML = '';
       for (const [chapter, entries] of Object.entries(data)) {
+        if (chapter === 'religionDeath') continue;
         const h = document.createElement('h3');
         h.textContent = chapter.charAt(0).toUpperCase() + chapter.slice(1);
         content.appendChild(h);
@@ -44,6 +45,18 @@
           ul.appendChild(li);
         });
         content.appendChild(ul);
+        if (chapter === 'religion' && data.religionDeath && data.religionDeath.length) {
+          const sub = document.createElement('h4');
+          sub.textContent = 'Death';
+          content.appendChild(sub);
+          const subul = document.createElement('ul');
+          data.religionDeath.forEach((e) => {
+            const li = document.createElement('li');
+            li.textContent = e;
+            subul.appendChild(li);
+          });
+          content.appendChild(subul);
+        }
       }
     }
     socket.emit('getLore');

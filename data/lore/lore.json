@@ -3,5 +3,6 @@
   "deaths": [],
   "events": [],
   "locations": [],
-  "religion": []
+  "religion": [],
+  "religionDeath": []
 }
