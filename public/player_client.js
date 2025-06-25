@@ -479,12 +479,15 @@ window.onload = function () {
       const idx = parseInt(text) - 1;
       if (motivations[idx]) {
         currentChar.motivation = motivations[idx];
-        printMessage('Click the Roll Career button to get your career.');
-        careerButton.style.display = 'inline-block';
-        phase = 'chooseCareer';
+        askFavoriteFood();
       } else {
         printMessage('Invalid choice.');
       }
+    } else if (phase === 'favoriteFood') {
+      currentChar.favoriteFood = text;
+      printMessage('Click the Roll Career button to get your career.');
+      careerButton.style.display = 'inline-block';
+      phase = 'chooseCareer';
     } else if (phase === 'shopMenu') {
       if (text === '1') {
         showShop();
@@ -646,6 +649,11 @@ window.onload = function () {
     printMessage('What brings you to The Bloclands?');
     motivations.forEach((m, i) => printMessage(`${i + 1}. ${m}`));
     phase = 'chooseMotivation';
+  }
+
+  function askFavoriteFood() {
+    printMessage('What is your favorite food?');
+    phase = 'favoriteFood';
   }
 
   function canUseItem(it) {
