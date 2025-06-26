@@ -50,6 +50,12 @@ let lore = {
 };
 let sharedText = "Welcome to the campaign.";
 
+function randomRace() {
+  const roll = Math.random();
+  if (roll < 0.5) return 'Human';
+  return ['Dwarf', 'Elf', 'Halfling'][Math.floor(Math.random() * 3)];
+}
+
 // Ensure base data files exist
 if (!fs.existsSync(CHAR_FILE)) fs.writeFileSync(CHAR_FILE, '{}');
 if (!fs.existsSync(LOG_FILE)) fs.writeFileSync(LOG_FILE, '');
@@ -112,7 +118,9 @@ function loadAll() {
         c.equipped = c.equipped || [];
         c.status = c.status || [];
         c.beersDrank = c.beersDrank || 0;
+        if (!c.race) c.race = randomRace();
       });
+      fs.writeFileSync(CHAR_FILE, JSON.stringify(savedCharacters, null, 2));
     } catch (err) {
       console.error('Error reading character file:', err);
     }
@@ -249,6 +257,10 @@ io.on("connection", (socket) => {
       c.equipped = c.equipped || [];
       c.status = c.status || [];
       c.beersDrank = c.beersDrank || 0;
+      if (!c.race) {
+        c.race = randomRace();
+        fs.writeFileSync(CHAR_FILE, JSON.stringify(savedCharacters, null, 2));
+      }
       socket.emit("characterLoaded", c);
     } else {
       socket.emit("characterNotFound");
