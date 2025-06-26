@@ -90,6 +90,21 @@
       Ranger: 8
     };
 
+    const saveTable = {
+      Fighter: { death: 12, wands: 13, paralysis: 14, breath: 15, spells: 16 },
+      Cleric: { death: 11, wands: 12, paralysis: 14, breath: 16, spells: 15 },
+      'Magic-User': { death: 13, wands: 14, paralysis: 13, breath: 16, spells: 15 },
+      Thief: { death: 13, wands: 14, paralysis: 13, breath: 16, spells: 15 },
+      Assassin: { death: 13, wands: 14, paralysis: 13, breath: 16, spells: 15 },
+      Barbarian: { death: 12, wands: 13, paralysis: 14, breath: 15, spells: 16 },
+      Bard: { death: 13, wands: 14, paralysis: 13, breath: 16, spells: 15 },
+      Druid: { death: 11, wands: 12, paralysis: 14, breath: 16, spells: 15 },
+      Illusionist: { death: 13, wands: 14, paralysis: 13, breath: 16, spells: 15 },
+      Knight: { death: 12, wands: 13, paralysis: 14, breath: 15, spells: 16 },
+      Paladin: { death: 12, wands: 13, paralysis: 14, breath: 15, spells: 16 },
+      Ranger: { death: 12, wands: 13, paralysis: 14, breath: 15, spells: 16 }
+    };
+
     const titles = {
       Fighter: ['Veteran','Warrior','Swordmaster','Hero','Swashbuckler','Myrmidon','Champion','Superhero','Lord'],
       Cleric: ['Acolyte','Adept','Priest','Vicar','Curate','Bishop','Lama','Patriarch','High Priest'],
@@ -133,6 +148,10 @@
             )
             .join(', ')
         : '(none)';
+      const sv = saveTable[charData.class];
+      const savesHtml = sv
+        ? `Saves: D/P ${sv.death}, W ${sv.wands}, P/T ${sv.paralysis}, B ${sv.breath}, S ${sv.spells}<br>`
+        : '';
       display.innerHTML =
         `<strong>${charData.name}</strong><br>` +
         `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
@@ -147,6 +166,7 @@
         `HP:<input id="hpInput" type="number" value="${charData.hp}" style="width:60px"> ` +
         `AC:${charData.ac} ` +
         `XP:<input id="xpInput" type="number" value="${charData.xp}" style="width:80px">/${charData.nextLevelXP}<br>` +
+        savesHtml +
         `Active Status: ${statusHtml}<br>` +
         `<button id="saveBtn">Save</button>`;
 

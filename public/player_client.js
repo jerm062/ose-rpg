@@ -652,9 +652,11 @@ window.onload = function () {
           "even the wicked cannot glory in them.";
         printMessage(poem);
         printHTML(
-          `<span style="font-family:'Jacquarda Bastarda 9',cursive;">Give your blood to these lands?</span>`
+          `<span style="font-family:'Jacquard 12',cursive;">Give your blood to these lands?</span>`
         );
-        printMessage('1. from my hands\n2. from my cheeks\n3. from my groin');
+        printMessage(
+          '\t1. from my hands\n\t2. from my cheeks\n\t3. from my groin'
+        );
         phase = 'bloodChoice';
       } else {
         printMessage('Invalid choice.');
