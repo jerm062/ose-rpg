@@ -41,11 +41,6 @@
     let mapNotes = [];
     let tokens = {};
     const legendEl = document.getElementById('legend');
-    const PATH_TYPES = {
-      road:  { symbol: '+', name: 'Road',  color: 'red' },
-      trail: { symbol: '-', name: 'Trail', color: 'white' },
-      river: { symbol: '~', name: 'River', color: '#666' }
-    };
     const LEGEND = {
       V: 'Village',
       R: 'Ruins',
@@ -59,11 +54,6 @@
     };
       function buildLegend() {
         const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
-        entries.push(
-          `<span style="color:${PATH_TYPES.road.color}">${PATH_TYPES.road.symbol} ${PATH_TYPES.road.name}</span>`,
-          `<span style="color:${PATH_TYPES.trail.color}">${PATH_TYPES.trail.symbol} ${PATH_TYPES.trail.name}</span>`,
-          `<span style="color:${PATH_TYPES.river.color}">${PATH_TYPES.river.symbol} ${PATH_TYPES.river.name}</span>`
-        );
         let n = 0;
         for (let y = 0; y < mapNotes.length; y++) {
           for (let x = 0; x < mapNotes[y].length; x++) {
@@ -107,18 +97,7 @@
             ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           } else {
             const cell = mapData[y][x];
-            if (typeof cell === 'string' && /^[+\-~]/.test(cell)) {
-              drawTile(ctx, '#000', x * TILE_SIZE, y * TILE_SIZE);
-              const color = cell[0] === '+' ? PATH_TYPES.road.color
-                          : cell[0] === '~' ? PATH_TYPES.river.color
-                          : PATH_TYPES.trail.color;
-              ctx.fillStyle = color;
-              ctx.beginPath();
-              ctx.arc(x * TILE_SIZE + TILE_SIZE/2, y * TILE_SIZE + TILE_SIZE/2, 3, 0, Math.PI*2);
-              ctx.fill();
-            } else {
-              drawTile(ctx, cell, x * TILE_SIZE, y * TILE_SIZE);
-            }
+            drawTile(ctx, cell, x * TILE_SIZE, y * TILE_SIZE);
           }
           if (mapNotes[y] && mapNotes[y][x]) {
             const n = noteNumber(x, y);

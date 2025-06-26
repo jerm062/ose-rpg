@@ -25,15 +25,7 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
-const PATH_TYPES = {
-  road:  { symbol: '+', name: 'Road',  color: 'red' },
-  trail: { symbol: '-', name: 'Trail', color: 'white' },
-  river: { symbol: '~', name: 'River', color: '#666' }
-};
-const TEXT_TILES = ['V','R','F','L','M','C','T','K','S',
-  PATH_TYPES.road.symbol,
-  PATH_TYPES.trail.symbol,
-  PATH_TYPES.river.symbol];
+const TEXT_TILES = ['V','R','F','L','M','C','T','K','S'];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 const LEGEND = {
@@ -306,11 +298,6 @@ function noteNumber(x, y) {
 function buildMapInfo() {
   const lines = [];
   Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
-  lines.push(
-    `Paths: <span style="color:${PATH_TYPES.road.color}">${PATH_TYPES.road.symbol} ${PATH_TYPES.road.name}</span>, ` +
-    `<span style="color:${PATH_TYPES.trail.color}">${PATH_TYPES.trail.symbol} ${PATH_TYPES.trail.name}</span>, ` +
-    `<span style="color:${PATH_TYPES.river.color}">${PATH_TYPES.river.symbol} ${PATH_TYPES.river.name}</span>`
-  );
   let n = 0;
   for (let y = 0; y < mapNotes.length; y++) {
     for (let x = 0; x < mapNotes[y].length; x++) {
@@ -331,23 +318,11 @@ function drawMap() {
     for (let x = 0; x < mapData[y].length; x++) {
       const cell = mapData[y][x];
       if (typeof cell === 'string' && cell && !cell.startsWith('#') && !tileImages[cell]) {
-        if (/^[+\-~]/.test(cell)) {
-          ctx.fillStyle = '#000';
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          const color = cell[0] === '+' ? PATH_TYPES.road.color
-                      : cell[0] === '~' ? PATH_TYPES.river.color
-                      : PATH_TYPES.trail.color;
-          ctx.fillStyle = color;
-          ctx.beginPath();
-          ctx.arc(x * cellSize + cellSize/2, y * cellSize + cellSize/2, 3, 0, Math.PI*2);
-          ctx.fill();
-        } else {
-          ctx.fillStyle = '#000';
-          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-          ctx.fillStyle = '#fff';
-          ctx.font = '14px "Tiny5", monospace';
-          ctx.fillText(cell, x * cellSize + 8, y * cellSize + 22);
-        }
+        ctx.fillStyle = '#000';
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px "Tiny5", monospace';
+        ctx.fillText(cell, x * cellSize + 8, y * cellSize + 22);
       } else {
         drawTile(ctx, cell, x * cellSize, y * cellSize);
       }
