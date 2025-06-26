@@ -59,6 +59,11 @@
     };
       function buildLegend() {
         const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
+        entries.push(
+          `<span style="color:${PATH_TYPES.road.color}">${PATH_TYPES.road.symbol} ${PATH_TYPES.road.name}</span>`,
+          `<span style="color:${PATH_TYPES.trail.color}">${PATH_TYPES.trail.symbol} ${PATH_TYPES.trail.name}</span>`,
+          `<span style="color:${PATH_TYPES.river.color}">${PATH_TYPES.river.symbol} ${PATH_TYPES.river.name}</span>`
+        );
         let n = 0;
         for (let y = 0; y < mapNotes.length; y++) {
           for (let x = 0; x < mapNotes[y].length; x++) {

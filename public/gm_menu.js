@@ -306,7 +306,11 @@ function noteNumber(x, y) {
 function buildMapInfo() {
   const lines = [];
   Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
-  lines.push('Paths: + Road, - Trail, ~ River');
+  lines.push(
+    `Paths: <span style="color:${PATH_TYPES.road.color}">${PATH_TYPES.road.symbol} ${PATH_TYPES.road.name}</span>, ` +
+    `<span style="color:${PATH_TYPES.trail.color}">${PATH_TYPES.trail.symbol} ${PATH_TYPES.trail.name}</span>, ` +
+    `<span style="color:${PATH_TYPES.river.color}">${PATH_TYPES.river.symbol} ${PATH_TYPES.river.name}</span>`
+  );
   let n = 0;
   for (let y = 0; y < mapNotes.length; y++) {
     for (let x = 0; x < mapNotes[y].length; x++) {
