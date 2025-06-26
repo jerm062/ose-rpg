@@ -31,8 +31,8 @@ setting the `OSE_RPG_DATA_DIR` environment variable.
 - Select **New map** for a blank map or **Map list** to load one to edit.
 - Use the map controls to name and **Save Map**.
 - Choose **Share map** to show a saved map to the players.
-- Tiles are loaded from the `/icons` directory and shown in a scrollable grid.
-  Click an icon and then a grid cell to place it on the map.
+- Tiles are loaded from the built in tileset and shown in a scrollable grid.
+  Click a tile and then a grid cell to place it on the map.
 
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.

@@ -80,10 +80,21 @@ function loadAll() {
     try {
       const raw = JSON.parse(fs.readFileSync(MAP_FILE));
       if (Array.isArray(raw)) {
-        maps.default = raw;
+        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')) };
         sharedMap = 'default';
       } else {
-        maps = raw.maps || {};
+        maps = {};
+        Object.entries(raw.maps || {}).forEach(([n, d]) => {
+          if (Array.isArray(d)) {
+            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')) };
+          } else {
+            maps[n] = {
+              cells: d.cells,
+              hidden: d.hidden || d.cells.map(r => r.map(() => false)),
+              notes: d.notes || d.cells.map(r => r.map(() => ''))
+            };
+          }
+        });
         sharedMap = raw.sharedMap || Object.keys(maps)[0] || null;
       }
     } catch (err) {
@@ -189,19 +200,11 @@ function exportAll() {
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/icons', express.static(path.join(__dirname, 'icons')));
 app.use('/organized_tiles', express.static(path.join(__dirname, 'organized_tiles')));
 app.get('/organized_tileset.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'organized_tileset.json'));
 });
 
-app.get('/icons/list', (req, res) => {
-  fs.readdir(path.join(__dirname, 'icons'), (err, files) => {
-    if (err) return res.json([]);
-    const list = files.filter((f) => f.endsWith('.png'));
-    res.json(list);
-  });
-});
 
 // Redirect root to player.html for Render or localhost
 app.get('/', (req, res) => {
@@ -574,8 +577,8 @@ io.on("connection", (socket) => {
 
   socket.on("updateMapCell", ({ x, y, value }) => {
     const map = maps[currentMap];
-    if (map && map[y] && typeof map[y][x] !== "undefined") {
-      map[y][x] = value;
+    if (map && map.cells[y] && typeof map.cells[y][x] !== "undefined") {
+      map.cells[y][x] = value;
       saveMaps();
       exportMaps();
       if (currentMap === sharedMap) io.emit("mapData", map);
@@ -583,20 +586,26 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("fillMap", (value) => {
+  socket.on("setHiddenCell", ({ x, y, hidden }) => {
     const map = maps[currentMap];
-    if (map) {
-      for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[y].length; x++) {
-          map[y][x] = value;
-        }
-      }
+    if (map && map.hidden[y] && typeof map.hidden[y][x] !== "undefined") {
+      map.hidden[y][x] = hidden;
       saveMaps();
       exportMaps();
       if (currentMap === sharedMap) io.emit("mapData", map);
       else socket.emit("mapData", map);
     }
   });
+
+  socket.on("setMapNote", ({ x, y, text }) => {
+    const map = maps[currentMap];
+    if (map && map.notes[y] && typeof map.notes[y][x] !== "undefined") {
+      map.notes[y][x] = text;
+      saveMaps();
+      exportMaps();
+    }
+  });
+
 
   socket.on("getLore", () => {
     const chars = Object.values(savedCharacters).map(
