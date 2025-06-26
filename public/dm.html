@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSE RPG - GM Tools</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
   <style>
     body {
-      font-family: monospace;
+      font-family: 'Tiny5', monospace;
       margin: 0 auto;
       max-width: 600px;
       padding: 1rem;
@@ -74,6 +75,14 @@
     document.getElementById('themeStylesheet').href = theme;
   </script>
   <h1>OSE RPG GM Interface</h1>
+  <label>Font:
+    <select id="fontPicker">
+      <option value="'Tiny5', monospace" selected>tiny5</option>
+      <option value="'Jacquard 12', cursive">Jacquard 12</option>
+      <option value="'Jacquarda Bastarda 9', cursive">Jacquarda Bastarda 9</option>
+      <option value="'Jacquard 24', cursive">Jacquard 24</option>
+    </select>
+  </label>
   <p><a href="index.html">&#x2B05; Back</a></p>
   <pre id="menuDisplay"></pre>
   <input id="gmInput" autocomplete="off" />
@@ -92,5 +101,15 @@
   <script src="/socket.io/socket.io.js"></script>
   <script src="tiles.js"></script>
   <script src="gm_menu.js"></script>
+  <script>
+    const picker = document.getElementById('fontPicker');
+    picker.onchange = () => {
+      document.body.style.fontFamily = picker.value;
+      document.getElementById('menuDisplay').style.fontFamily = picker.value;
+      document.getElementById('logDisplay').style.fontFamily = picker.value;
+      document.getElementById('readyDisplay').style.fontFamily = picker.value;
+    };
+    document.body.style.fontFamily = picker.value;
+  </script>
   </body>
 </html>

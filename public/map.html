@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Map</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap">
   <style>
     body {
-      font-family: monospace;
+      font-family: 'Tiny5', monospace;
       padding: 1rem;
       margin: 0 auto;
       max-width: 600px;
@@ -38,6 +39,9 @@
     let mapData = [];
     let tokens = {};
     const name = localStorage.getItem('characterName') || '';
+    let blink = true;
+
+    setInterval(() => { blink = !blink; render(); }, 500);
 
     function render() {
       if (!mapData.length) return;
@@ -63,7 +67,12 @@
         ctx.stroke();
       }
       Object.values(tokens).forEach(t => {
-        if (tileImages[t.icon]) {
+        if (!blink) return;
+        if (t.letter) {
+          ctx.fillStyle = t.color || '#fff';
+          ctx.font = '20px "Tiny5", monospace';
+          ctx.fillText(t.letter, t.x * TILE_SIZE + 8, t.y * TILE_SIZE + 22);
+        } else if (tileImages[t.icon]) {
           drawTile(ctx, t.icon, t.x * TILE_SIZE, t.y * TILE_SIZE);
         }
       });
