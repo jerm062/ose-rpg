@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSE RPG - Player</title>
-  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="theme-bw.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Micro+5+Charted&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
   <style>
     body {
       font-family: 'Tiny5', monospace;
       margin: 0 auto;
       padding: 1rem;
-      max-width: 600px;
-      font-size: 18px;
+      max-width: 100%;
+      font-size: 16px;
       line-height: 1.4;
       background: var(--bg);
       color: var(--fg);
@@ -30,19 +30,16 @@
     }
     #commandInput {
       width: 100%;
-      font-size: 18px;
+      font-size: 16px;
       padding: 0.5rem;
       border: 1px solid var(--border);
       background: var(--accent-bg);
       color: var(--accent-fg);
+      font-family: 'Tiny5', monospace;
     }
   </style>
 </head>
 <body>
-  <script>
-    const theme = localStorage.getItem('theme') || 'theme-classic.css';
-    document.getElementById('themeStylesheet').href = theme;
-  </script>
   <div id="gameDisplay">Welcome, adventurer!
 Enter your name:</div>
   <input id="commandInput" placeholder=">" autocomplete="off" autofocus>
