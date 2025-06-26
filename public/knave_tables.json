@@ -1,0 +1,18 @@
+{
+  "Background": [
+    "Alchemist",
+    "Beggar",
+    "Hunter",
+    "Mercenary",
+    "Sailor",
+    "Scholar"
+  ],
+  "Physical Detail": [
+    "Scarred",
+    "Tall",
+    "One-eyed",
+    "Tattooed",
+    "Lame",
+    "Bearded"
+  ]
+}

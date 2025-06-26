@@ -27,9 +27,21 @@ let charNameTemp = '';
 let tiles = [];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
+let generatorTables = {};
+
+async function loadTables() {
+  try {
+    const resp = await fetch('knave_tables.json');
+    generatorTables = await resp.json();
+  } catch (e) {
+    generatorTables = {};
+  }
+}
+
 function generateRegionMap(size) {
   mapData = Array.from({ length: size }, () => Array(size).fill(''));
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+  // region maps should be fully visible for the GM when first created
+  mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
   const features = ['Village','Ruins','Forest','Lake','Mount','Caves','Tower','Keep','Mine','Shrine'];
   features.forEach((f) => {
@@ -102,7 +114,8 @@ function showMainMenu() {
     '7. Story dialogue\n' +
     '8. Help\n' +
     '9. Add Lore\n' +
-    '10. Edit Data';
+    '10. Edit Data\n' +
+    '11. Generators';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
@@ -158,6 +171,30 @@ function showDataMenu() {
   palette.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'dataMenu';
+}
+
+function showGeneratorMenu() {
+  const titles = Object.keys(generatorTables);
+  display.textContent =
+    'Generators\n' +
+    titles.map((t, i) => `${i + 1}. ${t}`).join('\n') +
+    '\n0. Return';
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  colorPaletteEl.style.display = 'none';
+  mapControls.style.display = 'none';
+  mode = 'genMenu';
+}
+
+function showTableMenu(title) {
+  const table = generatorTables[title] || [];
+  display.textContent = `${title}\nR. Roll\n0. Return`;
+  canvas.style.display = 'none';
+  palette.style.display = 'none';
+  colorPaletteEl.style.display = 'none';
+  mapControls.style.display = 'none';
+  charNameTemp = title; // reuse as temp store
+  mode = 'genTable';
 }
 
 function drawMap() {
@@ -282,6 +319,9 @@ function handleInput(text) {
         break;
       case '10':
         showDataMenu();
+        break;
+      case '11':
+        showGeneratorMenu();
         break;
       default:
         showMainMenu();
@@ -543,6 +583,26 @@ function handleInput(text) {
     socket.emit('editLog', text);
     display.textContent = 'Log updated.';
     mode = 'help';
+  } else if (mode === 'genMenu') {
+    const idx = parseInt(text, 10) - 1;
+    const titles = Object.keys(generatorTables);
+    if (!isNaN(idx) && titles[idx]) {
+      showTableMenu(titles[idx]);
+    } else if (text === '0') {
+      showMainMenu();
+    } else {
+      showGeneratorMenu();
+    }
+  } else if (mode === 'genTable') {
+    if (text.toLowerCase() === 'r') {
+      const table = generatorTables[charNameTemp] || [];
+      if (table.length) {
+        const result = table[Math.floor(Math.random() * table.length)];
+        display.textContent += `\n${result}`;
+      }
+    } else if (text === '0') {
+      showGeneratorMenu();
+    }
   } else if (mode === 'newMapType') {
     let size = 10;
     selectedColor = colorPalette[0];
@@ -702,6 +762,7 @@ newMapBtn.addEventListener('click', () => {
 
 (async () => {
   await loadTileset();
+  await loadTables();
   tiles = TILES;
   selectedTile = TILES[0];
   if (location.hash === '#region') {
