@@ -18,11 +18,15 @@
     }
     a { color: var(--link); }
     canvas { border: 1px solid var(--border); background: black; }
+    #mapWrapper { display: flex; }
+    #legend { margin-right: 1rem; }
   </style>
 </head>
 <body>
-  <canvas id="mapCanvas" width="600" height="600"></canvas>
-  <pre id="legend"></pre>
+  <div id="mapWrapper">
+    <pre id="legend"></pre>
+    <canvas id="mapCanvas" width="600" height="600"></canvas>
+  </div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -34,6 +38,7 @@
 
     let mapData = [];
     let mapHidden = [];
+    let mapNotes = [];
     let tokens = {};
     const legendEl = document.getElementById('legend');
     const LEGEND = {
@@ -45,11 +50,16 @@
       C: 'Caves',
       T: 'Tower',
       K: 'Keep',
-      S: 'Shrine'
+      S: 'Shrine',
+      '+': '<span style="color:red">Road</span>',
+      '-': '<span style="color:white">Trail</span>',
+      '~': '<span style="color:#666">River</span>'
     };
-    legendEl.textContent = Object.entries(LEGEND)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join('\n');
+    function buildLegend() {
+      const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
+      legendEl.innerHTML = entries.join('<br>');
+    }
+    buildLegend();
     const name = localStorage.getItem('characterName') || '';
     let blink = true;
 
@@ -104,6 +114,8 @@
       socket.on('mapData', (data) => {
         mapData = data.cells;
         mapHidden = data.hidden || mapData.map(r => r.map(() => true));
+        mapNotes = data.notes || mapData.map(r => r.map(() => ''));
+        buildLegend();
         render();
       });
       socket.on('playerPositions', (data) => {
