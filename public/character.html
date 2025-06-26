@@ -137,6 +137,7 @@
         `<strong>${charData.name}</strong><br>` +
         `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
         `Title: ${getTitle(charData.class, charData.level)}<br>` +
+        (charData.race ? `Race: ${charData.race}<br>` : '') +
         `Career: ${charData.career || ''}<br>` +
         (charData.homeTown && charData.homeTown.name ? `Hometown: ${charData.homeTown.name}<br>` : '') +
         (charData.motivation ? `Motivation: ${charData.motivation}<br>` : '') +

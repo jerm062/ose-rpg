@@ -143,6 +143,12 @@ window.onload = function () {
     Elf: ['Common','Elvish','Gnoll','Hobgoblin','Orc'],
     Halfling: ['Common','Halfling','Dwarvish','Goblin','Orc'],
   };
+
+  function randomRace() {
+    const roll = Math.random();
+    if (roll < 0.5) return 'Human';
+    return ['Dwarf','Elf','Halfling'][Math.floor(Math.random() * 3)];
+  }
   const extraLanguages = ['Draconic','Giant','Hobgoblin','Kobold','Lizardman','Ogre','Pixie','Troglodyte'];
   const xpTable = {
     Fighter: [0, 2000, 4000, 8000, 16000, 32000, 64000, 120000, 240000, 360000],
@@ -311,7 +317,7 @@ window.onload = function () {
     return { slots, mv };
   }
 
-  function rollStatsAndRace() {
+  function rollStats() {
     currentChar.stats = {
       STR: rollStat(),
       DEX: rollStat(),
@@ -323,9 +329,6 @@ window.onload = function () {
     printMessage(
       `Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`
     );
-    currentChar.race = races[Math.floor(Math.random() * races.length)];
-    currentChar.languages = raceLanguages[currentChar.race].slice();
-    printMessage(`Race: ${currentChar.race}`);
     classOptions = classes.filter((c) => {
       const req = classReqs[c] || {};
       return Object.entries(req).every(([k, v]) => currentChar.stats[k] >= v);
@@ -447,7 +450,7 @@ window.onload = function () {
     currentChar.inventory.push(...career.items);
     printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
     careerButton.style.display = 'none';
-    rollStatsAndRace();
+    rollStats();
   });
 
   function handleInput(text) {
@@ -545,9 +548,20 @@ window.onload = function () {
       askMotivation();
     } else if (phase === 'enterTownName') {
       currentChar.homeTown.name = text;
-      printMessage('Click the Roll Career button to get your career.');
-      careerButton.style.display = 'inline-block';
-      phase = 'chooseCareer';
+      printMessage('Choose your race:');
+      races.forEach((r, i) => printMessage(`${i + 1}. ${r}`));
+      phase = 'chooseRace';
+    } else if (phase === 'chooseRace') {
+      const idx = parseInt(text) - 1;
+      if (races[idx]) {
+        currentChar.race = races[idx];
+        printMessage(`Race selected: ${currentChar.race}`);
+        careerButton.style.display = 'inline-block';
+        printMessage('Click the Roll Career button to get your career.');
+        phase = 'chooseCareer';
+      } else {
+        printMessage('Invalid choice.');
+      }
     } else if (phase === 'chooseMotivation') {
       const idx = parseInt(text) - 1;
       if (motivations[idx]) {
@@ -800,6 +814,13 @@ window.onload = function () {
     currentChar = charData;
     currentChar.equipped = currentChar.equipped || [];
     currentChar.status = currentChar.status || [];
+    if (!currentChar.race) {
+      currentChar.race = randomRace();
+      if (!currentChar.languages || !currentChar.languages.length) {
+        currentChar.languages = raceLanguages[currentChar.race].slice();
+      }
+      socket.emit('saveCharacter', currentChar);
+    }
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
     if (charData.color) localStorage.setItem('characterColor', charData.color);
