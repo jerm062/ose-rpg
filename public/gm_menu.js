@@ -53,7 +53,7 @@ async function loadTables() {
 }
 
 function generateRegionMap(size) {
-  mapData = Array.from({ length: size }, () => Array(size).fill(''));
+  mapData = Array.from({ length: size }, () => Array(size).fill('#000'));
   // region maps should be fully visible for the GM when first created
   mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
@@ -73,6 +73,7 @@ function generateRegionMap(size) {
     const x = Math.floor(Math.random() * size);
     const y = Math.floor(Math.random() * size);
     mapData[y][x] = f[0].toUpperCase();
+    mapNotes[y][x] = f;
   });
 }
 
@@ -266,6 +267,19 @@ function showTableMenu(title) {
   mode = 'genTable';
 }
 
+function noteNumber(x, y) {
+  let n = 0;
+  for (let yy = 0; yy < mapNotes.length; yy++) {
+    for (let xx = 0; xx < mapNotes[yy].length; xx++) {
+      if (mapNotes[yy][xx]) {
+        n++;
+        if (xx === x && yy === y) return n;
+      }
+    }
+  }
+  return null;
+}
+
 function drawMap() {
   canvas.width = mapData[0].length * cellSize;
   canvas.height = mapData.length * cellSize;
@@ -311,6 +325,13 @@ function drawMap() {
         ctx.font = '10px monospace';
         const idx = y * mapData[0].length + x + 1;
         ctx.fillText(idx, x * cellSize + 2, y * cellSize + 10);
+      } else if (mapNotes[y] && mapNotes[y][x]) {
+        const n = noteNumber(x, y);
+        if (n) {
+          ctx.fillStyle = '#0f0';
+          ctx.font = '10px monospace';
+          ctx.fillText(n, x * cellSize + 2, y * cellSize + 10);
+        }
       }
     }
   }
