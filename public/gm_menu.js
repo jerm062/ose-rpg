@@ -4,6 +4,7 @@ const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
+const colorPaletteEl = document.getElementById('colorPalette');
 const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
@@ -16,10 +17,31 @@ let mode = 'main';
 let mapData = [];
 let mapName = '';
 let selectedTile = '';
+let selectedColor = '#000000';
+let numberedMap = false;
 
 let charNameTemp = '';
 
 let tiles = [];
+const colorPalette = ['#000000','#ffffff','#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff'];
+
+function buildColorPalette() {
+  colorPaletteEl.innerHTML = '';
+  colorPalette.forEach((c) => {
+    const d = document.createElement('div');
+    d.className = 'colorBtn';
+    d.style.background = c;
+    if (c === selectedColor) d.classList.add('colorSel');
+    d.onclick = () => {
+      selectedColor = c;
+      document
+        .querySelectorAll('.colorBtn')
+        .forEach((b) => b.classList.remove('colorSel'));
+      d.classList.add('colorSel');
+    };
+    colorPaletteEl.appendChild(d);
+  });
+}
 
 function buildPalette() {
   palette.innerHTML = '';
@@ -69,6 +91,7 @@ function showMainMenu() {
     '10. Edit Data';
   canvas.style.display = 'none';
   palette.style.display = 'none';
+  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'main';
 }
@@ -86,6 +109,7 @@ function showCharMenu() {
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
+  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'charMenu';
 }
@@ -99,6 +123,7 @@ function showMapMenu() {
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
+  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'mapMenu';
 }
@@ -127,6 +152,12 @@ function drawMap() {
   for (let y = 0; y < mapData.length; y++) {
     for (let x = 0; x < mapData[y].length; x++) {
       drawTile(ctx, mapData[y][x], x * cellSize, y * cellSize);
+      if (numberedMap) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '10px monospace';
+        const idx = y * mapData[0].length + x + 1;
+        ctx.fillText(idx, x * cellSize + 2, y * cellSize + 10);
+      }
     }
   }
   ctx.strokeStyle = '#555';
@@ -143,7 +174,15 @@ function drawMap() {
     ctx.stroke();
   }
   canvas.style.display = 'block';
-  if (mode === 'editmap') palette.style.display = 'block';
+  if (mode === 'editmap') {
+    if (numberedMap) {
+      colorPaletteEl.style.display = 'block';
+      palette.style.display = 'none';
+    } else {
+      palette.style.display = 'block';
+      colorPaletteEl.style.display = 'none';
+    }
+  }
 }
 
 input.addEventListener('keydown', (ev) => {
@@ -237,15 +276,8 @@ function handleInput(text) {
   } else if (mode === 'mapMenu') {
     switch (text) {
       case '1':
-        mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
-        mapName = '';
-        buildPalette();
-        mapNameInput.value = '';
-        mapControls.style.display = 'block';
-        palette.style.display = 'block';
-        drawMap();
-        display.textContent = 'Editing new map\n0. Return';
-        mode = 'editmap';
+        display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
+        mode = 'newMapType';
         break;
       case '2':
         socket.emit('getMapList');
@@ -287,6 +319,7 @@ function handleInput(text) {
     if (text === '0') {
       showMainMenu();
       palette.style.display = 'none';
+      colorPaletteEl.style.display = 'none';
       mapControls.style.display = 'none';
     }
   } else if (mode === 'iconName') {
@@ -458,10 +491,38 @@ function handleInput(text) {
     socket.emit('editLog', text);
     display.textContent = 'Log updated.';
     mode = 'help';
+  } else if (mode === 'newMapType') {
+    let size = 10;
+    numberedMap = true;
+    selectedColor = colorPalette[0];
+    switch (text) {
+      case '1':
+        size = 10; // world map 10x10
+        break;
+      case '2':
+        size = 20; // region map
+        break;
+      case '3':
+        size = 30; // dungeon map
+        break;
+      default:
+        showMapMenu();
+        return;
+    }
+    mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
+    mapName = '';
+    mapNameInput.value = '';
+    buildColorPalette();
+    mapControls.style.display = 'block';
+    numberedMap = true;
+    drawMap();
+    display.textContent = 'Editing new map\n0. Return';
+    mode = 'editmap';
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
     buildPalette();
+    numberedMap = false;
     mapNameInput.value = mapName;
     mapControls.style.display = 'block';
     mode = 'editmap';
@@ -494,6 +555,8 @@ socket.on('logUpdate', (entry) => {
 
 socket.on('mapData', (data) => {
   mapData = data;
+  numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#');
+  if (numberedMap) buildColorPalette(); else buildPalette();
   drawMap();
   if (mode === 'editmap') {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
@@ -519,7 +582,11 @@ canvas.addEventListener('click', (ev) => {
   const x = Math.floor(ev.offsetX / cellSize);
   const y = Math.floor(ev.offsetY / cellSize);
   if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
-    mapData[y][x] = selectedTile;
+    if (numberedMap) {
+      mapData[y][x] = selectedColor;
+    } else {
+      mapData[y][x] = selectedTile;
+    }
     drawMap();
     socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
   }
@@ -532,24 +599,17 @@ socket.emit('saveMap', { name, data: mapData });
 });
 
 newMapBtn.addEventListener('click', () => {
-  mapData = Array.from({ length: 20 }, () => Array(20).fill(TILES[0]));
-  mapName = '';
-  buildPalette();
-  mapNameInput.value = '';
-  mapControls.style.display = 'block';
-  palette.style.display = 'block';
-  drawMap();
-  display.textContent = 'Editing new map\n0. Return';
-  mode = 'editmap';
+  display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
+  mode = 'newMapType';
 });
 
 fillMapBtn.addEventListener('click', () => {
   if (mode !== 'editmap') return;
   for (let y = 0; y < mapData.length; y++) {
-    mapData[y].fill(selectedTile);
+    mapData[y].fill(numberedMap ? selectedColor : selectedTile);
   }
   drawMap();
-  socket.emit('fillMap', selectedTile);
+  socket.emit('fillMap', numberedMap ? selectedColor : selectedTile);
 });
 
 (async () => {

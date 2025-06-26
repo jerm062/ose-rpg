@@ -51,6 +51,11 @@ function drawTile(targetCtx, type, x = 0, y = 0) {
   targetCtx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
   if (img) {
     targetCtx.drawImage(img, 0, 0, TILE_SIZE, TILE_SIZE);
+  } else if (typeof type === 'string' && type.startsWith('#')) {
+    targetCtx.fillStyle = type;
+    targetCtx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+    targetCtx.strokeStyle = '#fff';
+    targetCtx.strokeRect(0, 0, TILE_SIZE, TILE_SIZE);
   } else {
     targetCtx.fillStyle = '#fff';
     targetCtx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
