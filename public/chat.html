@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chat</title>
-  <link rel="stylesheet" href="theme-bw.css" />
+  <link rel="stylesheet" href="theme-dark.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
   <style>
     body {
@@ -18,7 +18,14 @@
       color: var(--fg);
     }
     a { color: var(--link); }
-    pre { height: 60vh; overflow-y: auto; white-space: pre-wrap; border: 1px solid var(--border); padding: 0.5rem; }
+    pre {
+      height: 60vh;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      border: 1px solid var(--border);
+      padding: 0.5rem;
+      font-family: 'Tiny5', monospace;
+    }
     .readyBar { border: 1px solid var(--border); padding: 0.25rem; margin-top: 0.5rem; display: flex; flex-wrap: wrap; gap: 0.25rem; }
     .readyBar span { white-space: nowrap; }
     .char { color: deepskyblue; }

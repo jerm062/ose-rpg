@@ -514,11 +514,11 @@ window.onload = function () {
         const choice = religionChoices[idx];
         if (choice === 'None') {
           currentChar.religion = { type: 'none' };
-          printMessage('Where does your spirituality rest lost one?');
+          printMessage('Where does your faith lie Heretic?');
           phase = 'religionNone';
         } else if (choice === 'Monotheistic') {
           currentChar.religion = { type: 'monotheistic' };
-          printMessage('Where does your faith lie heretic one?');
+          printMessage('Which sect do you belong to Oh Holy One');
           phase = 'religionMono';
         } else {
           currentChar.religion = { type: 'polytheistic' };
