@@ -216,8 +216,15 @@ io.on("connection", (socket) => {
     if (!Object.prototype.hasOwnProperty.call(readyState, name)) {
       readyState[name] = false;
     }
-    if (savedCharacters[name] && savedCharacters[name].icon && !playerPositions[name]) {
-      playerPositions[name] = { x: 0, y: 0, icon: savedCharacters[name].icon };
+    if (savedCharacters[name] && !playerPositions[name]) {
+      const c = savedCharacters[name];
+      playerPositions[name] = {
+        x: 0,
+        y: 0,
+        icon: c.icon,
+        color: c.color || '#fff',
+        letter: (c.class || '?')[0].toUpperCase(),
+      };
     }
     socket.emit("readyList", readyState);
     socket.emit("playerPositions", playerPositions);
@@ -404,14 +411,27 @@ io.on("connection", (socket) => {
         exportCharacters();
       });
       const pos = playerPositions[name] || { x: 0, y: 0 };
-      playerPositions[name] = { x: pos.x, y: pos.y, icon };
+      playerPositions[name] = {
+        x: pos.x,
+        y: pos.y,
+        icon,
+        color: savedCharacters[name].color || '#fff',
+        letter: (savedCharacters[name].class || '?')[0].toUpperCase(),
+      };
       io.emit("playerPositions", playerPositions);
     }
   });
 
   socket.on("movePlayer", ({ name, x, y }) => {
-    if (savedCharacters[name] && savedCharacters[name].icon) {
-      playerPositions[name] = { x, y, icon: savedCharacters[name].icon };
+    if (savedCharacters[name]) {
+      const c = savedCharacters[name];
+      playerPositions[name] = {
+        x,
+        y,
+        icon: c.icon,
+        color: c.color || '#fff',
+        letter: (c.class || '?')[0].toUpperCase(),
+      };
       io.emit("playerPositions", playerPositions);
     }
   });
@@ -469,7 +489,8 @@ io.on("connection", (socket) => {
       finalMsg = message.split("").sort(() => Math.random() - 0.5).join("");
     }
 
-    const entry = `[Player] ${name}: ${finalMsg}`;
+    const color = (char && char.color) ? char.color : '#fff';
+    const entry = `[Player:${color}] ${name}: ${finalMsg}`;
     campaignLog.push(entry);
     fs.appendFile(LOG_FILE, entry + "\n", () => {});
     io.emit("logUpdate", entry);

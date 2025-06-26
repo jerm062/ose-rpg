@@ -23,7 +23,17 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
-const colorPalette = ['#000000','#ffffff','#ff0000','#00ff00','#0000ff','#ffff00','#ff00ff','#00ffff'];
+const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#383838'];
+
+function generateRegionMap(size) {
+  mapData = Array.from({ length: size }, () => Array(size).fill(''));
+  const features = ['Village','Ruins','Forest','Lake','Mount','Caves','Tower','Keep','Mine','Shrine'];
+  features.forEach((f) => {
+    const x = Math.floor(Math.random() * size);
+    const y = Math.floor(Math.random() * size);
+    mapData[y][x] = f[0].toUpperCase();
+  });
+}
 
 function buildColorPalette() {
   colorPaletteEl.innerHTML = '';
@@ -151,7 +161,16 @@ function drawMap() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let y = 0; y < mapData.length; y++) {
     for (let x = 0; x < mapData[y].length; x++) {
-      drawTile(ctx, mapData[y][x], x * cellSize, y * cellSize);
+      const cell = mapData[y][x];
+      if (typeof cell === 'string' && cell && !cell.startsWith('#') && !tileImages[cell]) {
+        ctx.fillStyle = '#222';
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px "Tiny5", monospace';
+        ctx.fillText(cell, x * cellSize + 8, y * cellSize + 22);
+      } else {
+        drawTile(ctx, cell, x * cellSize, y * cellSize);
+      }
       if (numberedMap) {
         ctx.fillStyle = '#fff';
         ctx.font = '10px monospace';
@@ -493,28 +512,31 @@ function handleInput(text) {
     mode = 'help';
   } else if (mode === 'newMapType') {
     let size = 10;
-    numberedMap = true;
     selectedColor = colorPalette[0];
     switch (text) {
       case '1':
-        size = 10; // world map 10x10
+        size = 10; // world map
+        numberedMap = true;
+        mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
         break;
       case '2':
         size = 20; // region map
+        numberedMap = false;
+        generateRegionMap(size);
         break;
       case '3':
         size = 30; // dungeon map
+        numberedMap = true;
+        mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
         break;
       default:
         showMapMenu();
         return;
     }
-    mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
     mapName = '';
     mapNameInput.value = '';
-    buildColorPalette();
+    if (numberedMap) buildColorPalette(); else buildPalette();
     mapControls.style.display = 'block';
-    numberedMap = true;
     drawMap();
     display.textContent = 'Editing new map\n0. Return';
     mode = 'editmap';

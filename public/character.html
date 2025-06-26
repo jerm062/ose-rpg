@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Character Sheet</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
   <style>
     body {
-      font-family: monospace;
+      font-family: 'Tiny5', monospace;
       padding: 1rem;
       margin: 0 auto;
       max-width: 600px;
@@ -21,7 +22,7 @@
       background: var(--accent-bg);
       color: var(--accent-fg);
       border: 1px solid var(--border);
-      font-family: monospace;
+      font-family: 'Tiny5', monospace;
     }
   </style>
 </head>
@@ -31,6 +32,7 @@
     document.getElementById('themeStylesheet').href = theme;
   </script>
   <div id="charDisplay">Loading...</div>
+  <div id="charIcon" style="font-size:30px;margin-top:0.5rem;"></div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -150,6 +152,10 @@
         `XP:<input id="xpInput" type="number" value="${charData.xp}" style="width:80px">/${charData.nextLevelXP}<br>` +
         `Active Status: ${statusHtml}<br>` +
         `<button id="saveBtn">Save</button>`;
+
+      const iconEl = document.getElementById('charIcon');
+      iconEl.textContent = (charData.class || '?')[0].toUpperCase();
+      iconEl.style.color = charData.color || '#fff';
 
       document.getElementById('saveBtn').onclick = () => {
         currentChar.hp = parseInt(document.getElementById('hpInput').value, 10);

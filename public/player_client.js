@@ -9,6 +9,8 @@ window.onload = function () {
   let currentChar = null;
   let pendingClass = null;
 
+  const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#383838'];
+
   const classes = [
     'Fighter',
     'Cleric',
@@ -613,6 +615,23 @@ window.onload = function () {
       } else {
         printMessage('Invalid spell.');
       }
+    } else if (phase === 'pickColor') {
+      const idx = parseInt(text) - 1;
+      if (colorPalette[idx]) {
+        currentChar.color = colorPalette[idx];
+        socket.emit('saveCharacter', currentChar);
+        if (currentChar.homeTown && currentChar.homeTown.name) {
+          const ht = currentChar.homeTown;
+          const summary = `${ht.name} - ${ht.biome}, ${ht.theme}, seeks ${ht.ambition}, landmark: ${ht.landmark}, government: ${ht.government}`;
+          socket.emit('addLore', { chapter: 'locations', text: summary });
+        }
+        localStorage.setItem('characterName', currentChar.name);
+        localStorage.setItem('characterColor', currentChar.color);
+        printMessage('Character creation complete!');
+        phase = 'loading';
+      } else {
+        printMessage('Invalid choice.');
+      }
     } else if (phase === 'menu') {
       switch (text) {
         case '1':
@@ -730,14 +749,9 @@ window.onload = function () {
   }
 
   function finalizeCharacter() {
-    socket.emit('saveCharacter', currentChar);
-    if (currentChar.homeTown && currentChar.homeTown.name) {
-      const ht = currentChar.homeTown;
-      const summary = `${ht.name} - ${ht.biome}, ${ht.theme}, seeks ${ht.ambition}, landmark: ${ht.landmark}, government: ${ht.government}`;
-      socket.emit('addLore', { chapter: 'locations', text: summary });
-    }
-    printMessage('Character creation complete!');
-    phase = 'loading';
+    printMessage('Choose a color for your chat name:');
+    colorPalette.forEach((c,i)=>printMessage(`${i+1}. ${c}`));
+    phase = 'pickColor';
   }
 
   socket.on('characterLoaded', (charData) => {
@@ -746,6 +760,7 @@ window.onload = function () {
     currentChar.status = currentChar.status || [];
     printMessage(`Welcome back, ${charData.name}!`);
     localStorage.setItem('characterName', charData.name);
+    if (charData.color) localStorage.setItem('characterColor', charData.color);
     socket.emit('registerPlayer', charData.name);
     showMenu();
   });
