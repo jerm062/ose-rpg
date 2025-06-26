@@ -26,7 +26,15 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
-const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
+const PATH_TYPES = {
+  road:  { symbol: '+', name: 'Road',  color: 'red' },
+  trail: { symbol: '-', name: 'Trail', color: 'white' },
+  river: { symbol: '~', name: 'River', color: '#666' }
+};
+const TEXT_TILES = ['V','R','F','L','M','C','T','K','S',
+  PATH_TYPES.road.symbol,
+  PATH_TYPES.trail.symbol,
+  PATH_TYPES.river.symbol];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 const LEGEND = {
@@ -40,11 +48,6 @@ const LEGEND = {
   K: 'Keep',
   S: 'Shrine'
 };
-const PATHS = [
-  { symbol: '+', name: 'Road', color: 'red' },
-  { symbol: '-', name: 'Trail', color: 'white' },
-  { symbol: '~', name: 'River', color: '#666' }
-];
 
 const SETTING_SEEDS = [
   'Remote valley ruled by jealous spirits',
@@ -304,7 +307,7 @@ function noteNumber(x, y) {
 function buildMapInfo() {
   const lines = [];
   Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
-  PATHS.forEach(p => {
+  Object.values(PATH_TYPES).forEach(p => {
     lines.push(`${p.symbol}: <span style="color:${p.color}">${p.name}</span>`);
   });
   let n = 0;

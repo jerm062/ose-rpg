@@ -41,6 +41,11 @@
     let mapNotes = [];
     let tokens = {};
     const legendEl = document.getElementById('legend');
+    const PATH_TYPES = {
+      road:  { symbol: '+', name: 'Road',  color: 'red' },
+      trail: { symbol: '-', name: 'Trail', color: 'white' },
+      river: { symbol: '~', name: 'River', color: '#666' }
+    };
     const LEGEND = {
       V: 'Village',
       R: 'Ruins',
@@ -50,13 +55,13 @@
       C: 'Caves',
       T: 'Tower',
       K: 'Keep',
-      S: 'Shrine',
-      '+': '<span style="color:red">Road</span>',
-      '-': '<span style="color:white">Trail</span>',
-      '~': '<span style="color:#666">River</span>'
+      S: 'Shrine'
     };
       function buildLegend() {
         const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
+        Object.values(PATH_TYPES).forEach(p => {
+          entries.push(`${p.symbol}: <span style="color:${p.color}">${p.name}</span>`);
+        });
         let n = 0;
         for (let y = 0; y < mapNotes.length; y++) {
           for (let x = 0; x < mapNotes[y].length; x++) {
