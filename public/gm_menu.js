@@ -10,6 +10,7 @@ const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
 const newMapBtn = document.getElementById('newMapBtn');
 const readyDisplay = document.getElementById('readyDisplay');
+const infoDisplay = document.getElementById('mapInfo');
 const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
 let mode = 'main';
@@ -27,6 +28,18 @@ let charNameTemp = '';
 let tiles = [];
 const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
+
+const LEGEND = {
+  V: 'Village',
+  R: 'Ruins',
+  F: 'Forest',
+  L: 'Lake',
+  M: 'Mount/Mine',
+  C: 'Caves',
+  T: 'Tower',
+  K: 'Keep',
+  S: 'Shrine'
+};
 
 const SETTING_SEEDS = [
   'Remote valley ruled by jealous spirits',
@@ -53,10 +66,11 @@ async function loadTables() {
 }
 
 function generateRegionMap(size) {
-  mapData = Array.from({ length: size }, () => Array(size).fill(''));
+  mapData = Array.from({ length: size }, () => Array(size).fill('#000'));
   // region maps should be fully visible for the GM when first created
   mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+  lastTrail = null;
   const features = [
     'Village',
     'Ruins',
@@ -73,7 +87,9 @@ function generateRegionMap(size) {
     const x = Math.floor(Math.random() * size);
     const y = Math.floor(Math.random() * size);
     mapData[y][x] = f[0].toUpperCase();
+    mapNotes[y][x] = f;
   });
+  buildMapInfo();
 }
 
 function createWorldMap() {
@@ -83,6 +99,8 @@ function createWorldMap() {
   mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
   mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+  lastTrail = null;
+  buildMapInfo();
 }
 
 function createRegionMap() {
@@ -90,6 +108,7 @@ function createRegionMap() {
   numberedMap = false;
   selectedColor = colorPalette[0];
   generateRegionMap(size);
+  lastTrail = null;
 }
 
 function createDungeonMap() {
@@ -99,6 +118,8 @@ function createDungeonMap() {
   mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
   mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+  lastTrail = null;
+  buildMapInfo();
 }
 
 function randomSettingSeed() {
@@ -266,6 +287,34 @@ function showTableMenu(title) {
   mode = 'genTable';
 }
 
+function noteNumber(x, y) {
+  let n = 0;
+  for (let yy = 0; yy < mapNotes.length; yy++) {
+    for (let xx = 0; xx < mapNotes[yy].length; xx++) {
+      if (mapNotes[yy][xx]) {
+        n++;
+        if (xx === x && yy === y) return n;
+      }
+    }
+  }
+  return null;
+}
+
+function buildMapInfo() {
+  const lines = [];
+  Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
+  let n = 0;
+  for (let y = 0; y < mapNotes.length; y++) {
+    for (let x = 0; x < mapNotes[y].length; x++) {
+      if (mapNotes[y][x]) {
+        n++;
+        lines.push(`${n}. ${mapNotes[y][x]}`);
+      }
+    }
+  }
+  if (infoDisplay) infoDisplay.innerHTML = lines.join('<br>');
+}
+
 function drawMap() {
   canvas.width = mapData[0].length * cellSize;
   canvas.height = mapData.length * cellSize;
@@ -311,6 +360,13 @@ function drawMap() {
         ctx.font = '10px monospace';
         const idx = y * mapData[0].length + x + 1;
         ctx.fillText(idx, x * cellSize + 2, y * cellSize + 10);
+      } else if (mapNotes[y] && mapNotes[y][x]) {
+        const n = noteNumber(x, y);
+        if (n) {
+          ctx.fillStyle = '#0f0';
+          ctx.font = '10px monospace';
+          ctx.fillText(n, x * cellSize + 2, y * cellSize + 10);
+        }
       }
     }
   }
@@ -732,6 +788,8 @@ socket.on('mapData', (data) => {
   mapData = data.cells;
   mapHidden = data.hidden || mapData.map(r => r.map(() => true));
   mapNotes = data.notes || mapData.map(r => r.map(() => ''));
+  lastTrail = null;
+  buildMapInfo();
   numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#');
   if (numberedMap) buildColorPalette(); else buildPalette();
   drawMap();
@@ -766,29 +824,30 @@ canvas.addEventListener('click', (ev) => {
       if (note !== null) {
         mapNotes[y][x] = note;
         socket.emit('setMapNote', { x, y, text: note });
+        buildMapInfo();
       }
-    } else {
-      if (numberedMap) {
-        mapData[y][x] = selectedColor;
-        lastTrail = null;
       } else {
-        if (['-','~','+'].includes(selectedTile)) {
-          let orient = 'h';
-          if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
-            orient = lastTrail.x !== x ? 'h' : 'v';
-          }
-          mapData[y][x] = selectedTile + orient;
-          lastTrail = {x,y};
-        } else {
-          mapData[y][x] = selectedTile;
+        if (numberedMap) {
+          mapData[y][x] = selectedColor;
           lastTrail = null;
+        } else {
+          if (['-','~','+'].includes(selectedTile)) {
+            let orient = 'h';
+            if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
+              orient = lastTrail.x !== x ? 'h' : 'v';
+            }
+            mapData[y][x] = selectedTile + orient;
+            lastTrail = {x,y};
+          } else {
+            mapData[y][x] = selectedTile;
+            lastTrail = null;
+          }
         }
+        socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
       }
-      socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
+      drawMap();
     }
-    drawMap();
-  }
-});
+  });
 
 canvas.addEventListener('contextmenu', (ev) => {
   if (mode !== 'editmap') return;
@@ -826,6 +885,7 @@ newMapBtn.addEventListener('click', () => {
     mapNameInput.value = '';
     mapControls.style.display = 'block';
     drawMap();
+    buildMapInfo();
     display.textContent = 'Editing new region map\nS. Generate Seed\n0. Return';
     mode = 'editmap';
   } else if (location.hash === '#world') {
@@ -835,6 +895,7 @@ newMapBtn.addEventListener('click', () => {
     mapNameInput.value = '';
     mapControls.style.display = 'block';
     drawMap();
+    buildMapInfo();
     display.textContent = 'Editing new world map\n0. Return';
     mode = 'editmap';
   } else if (location.hash === '#dungeon') {
@@ -844,6 +905,7 @@ newMapBtn.addEventListener('click', () => {
     mapNameInput.value = '';
     mapControls.style.display = 'block';
     drawMap();
+    buildMapInfo();
     display.textContent = 'Editing new dungeon map\n0. Return';
     mode = 'editmap';
   } else {
