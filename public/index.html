@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSE RPG Entry</title>
-  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="theme-bw.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Jacquard+12&display=swap">
   <style>
       body {
         font-family: 'Tiny5', monospace;
-      padding: 2rem;
-      max-width: 600px;
+      padding: 1rem;
+      max-width: 100%;
       margin: 0 auto;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1.4;
       background: var(--bg);
       color: var(--fg);
@@ -24,19 +24,6 @@
   <h1 style="font-family:'Jacquard 12',serif;">The Blocland Lands</h1>
   <p><a href="/player.html">▶ Join as Player</a></p>
   <p><a href="/dm.html">🎲 Launch GM Tools</a></p>
-  <p><a href="#" id="toggleTheme">Toggle Theme</a></p>
-  <script>
-    const themeEl = document.getElementById('themeStylesheet');
-    themeEl.href = 'theme-msdos.css';
-    localStorage.setItem('theme', 'theme-msdos.css');
-    const themes = ['theme-msdos.css', 'theme-classic.css', 'theme-dark.css'];
-    document.getElementById('toggleTheme').onclick = () => {
-      const current = themeEl.getAttribute('href');
-      const idx = themes.indexOf(current);
-      const next = themes[(idx + 1) % themes.length];
-      themeEl.href = next;
-      localStorage.setItem('theme', next);
-    };
-  </script>
+  <p><a href="/dm.html#region">🗺️ Region Map Maker</a></p>
 </body>
 </html>

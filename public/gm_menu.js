@@ -704,6 +704,18 @@ newMapBtn.addEventListener('click', () => {
   await loadTileset();
   tiles = TILES;
   selectedTile = TILES[0];
-  showMainMenu();
+  if (location.hash === '#region') {
+    generateRegionMap(20);
+    numberedMap = false;
+    buildPalette();
+    mapName = '';
+    mapNameInput.value = '';
+    mapControls.style.display = 'block';
+    drawMap();
+    display.textContent = 'Editing new region map\n0. Return';
+    mode = 'editmap';
+  } else {
+    showMainMenu();
+  }
   input.focus();
 })();

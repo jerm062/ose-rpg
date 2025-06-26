@@ -4,15 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Map</title>
-  <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
+  <link rel="stylesheet" href="theme-bw.css" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Micro+5+Charted&display=swap">
   <style>
     body {
       font-family: 'Tiny5', monospace;
       padding: 1rem;
       margin: 0 auto;
-      max-width: 600px;
-      font-size: 18px;
+      max-width: 100%;
+      font-size: 16px;
       line-height: 1.4;
       background: var(--bg);
       color: var(--fg);
@@ -22,10 +22,6 @@
   </style>
 </head>
 <body>
-  <script>
-    const theme = localStorage.getItem('theme') || 'theme-classic.css';
-    document.getElementById('themeStylesheet').href = theme;
-  </script>
   <canvas id="mapCanvas" width="600" height="600"></canvas>
   <pre id="legend"></pre>
   <p><a href="player.html">&#x2B05; Back</a></p>
