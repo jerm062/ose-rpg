@@ -18,11 +18,15 @@
     }
     a { color: var(--link); }
     canvas { border: 1px solid var(--border); background: black; }
+    #mapWrapper { display: flex; }
+    #legend { margin-right: 1rem; }
   </style>
 </head>
 <body>
-  <canvas id="mapCanvas" width="600" height="600"></canvas>
-  <pre id="legend"></pre>
+  <div id="mapWrapper">
+    <pre id="legend"></pre>
+    <canvas id="mapCanvas" width="600" height="600"></canvas>
+  </div>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -34,8 +38,14 @@
 
     let mapData = [];
     let mapHidden = [];
+    let mapNotes = [];
     let tokens = {};
     const legendEl = document.getElementById('legend');
+    const PATH_TYPES = {
+      road:  { symbol: '+', name: 'Road',  color: 'red' },
+      trail: { symbol: '-', name: 'Trail', color: 'white' },
+      river: { symbol: '~', name: 'River', color: '#666' }
+    };
     const LEGEND = {
       V: 'Village',
       R: 'Ruins',
@@ -47,9 +57,39 @@
       K: 'Keep',
       S: 'Shrine'
     };
-    legendEl.textContent = Object.entries(LEGEND)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join('\n');
+      function buildLegend() {
+        const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
+        entries.push(
+          `<span style="color:${PATH_TYPES.road.color}">${PATH_TYPES.road.symbol} ${PATH_TYPES.road.name}</span>`,
+          `<span style="color:${PATH_TYPES.trail.color}">${PATH_TYPES.trail.symbol} ${PATH_TYPES.trail.name}</span>`,
+          `<span style="color:${PATH_TYPES.river.color}">${PATH_TYPES.river.symbol} ${PATH_TYPES.river.name}</span>`
+        );
+        let n = 0;
+        for (let y = 0; y < mapNotes.length; y++) {
+          for (let x = 0; x < mapNotes[y].length; x++) {
+            if (mapNotes[y][x]) {
+              n++;
+              entries.push(`${n}. ${mapNotes[y][x]}`);
+            }
+          }
+        }
+        legendEl.innerHTML = entries.join('<br>');
+      }
+    buildLegend();
+
+    function noteNumber(x, y) {
+      let n = 0;
+      for (let yy = 0; yy < mapNotes.length; yy++) {
+        for (let xx = 0; xx < mapNotes[yy].length; xx++) {
+          if (mapNotes[yy][xx]) {
+            n++;
+            if (xx === x && yy === y) return n;
+          }
+        }
+      }
+      return 0;
+    }
+
     const name = localStorage.getItem('characterName') || '';
     let blink = true;
 
@@ -66,7 +106,25 @@
             ctx.fillStyle = 'black';
             ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
           } else {
-            drawTile(ctx, mapData[y][x], x * TILE_SIZE, y * TILE_SIZE);
+            const cell = mapData[y][x];
+            if (typeof cell === 'string' && /^[+\-~]/.test(cell)) {
+              drawTile(ctx, '#000', x * TILE_SIZE, y * TILE_SIZE);
+              const color = cell[0] === '+' ? PATH_TYPES.road.color
+                          : cell[0] === '~' ? PATH_TYPES.river.color
+                          : PATH_TYPES.trail.color;
+              ctx.fillStyle = color;
+              ctx.beginPath();
+              ctx.arc(x * TILE_SIZE + TILE_SIZE/2, y * TILE_SIZE + TILE_SIZE/2, 3, 0, Math.PI*2);
+              ctx.fill();
+            } else {
+              drawTile(ctx, cell, x * TILE_SIZE, y * TILE_SIZE);
+            }
+          }
+          if (mapNotes[y] && mapNotes[y][x]) {
+            const n = noteNumber(x, y);
+            ctx.fillStyle = '#0f0';
+            ctx.font = '10px monospace';
+            ctx.fillText(n, x * TILE_SIZE + 2, y * TILE_SIZE + 10);
           }
         }
       }
@@ -104,6 +162,8 @@
       socket.on('mapData', (data) => {
         mapData = data.cells;
         mapHidden = data.hidden || mapData.map(r => r.map(() => true));
+        mapNotes = data.notes || mapData.map(r => r.map(() => ''));
+        buildLegend();
         render();
       });
       socket.on('playerPositions', (data) => {
