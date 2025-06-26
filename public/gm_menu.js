@@ -28,6 +28,19 @@ let tiles = [];
 const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
+const SETTING_SEEDS = [
+  'Remote valley ruled by jealous spirits',
+  'Quiet coast stalked by cunning raiders',
+  'Wind‑swept moor hiding ancient cairns',
+  'Flooded forest teeming with witch covens',
+  'Mountain pass patrolled by rival clans',
+  'Dusty plateau scattered with bizarre relics',
+  'Island refuge corrupted by a fallen order',
+  'Frozen wastes haunted by restless dead',
+  'Sombre wood contested by fey courts',
+  'Borderlands wracked by endless storms'
+];
+
 let generatorTables = {};
 
 async function loadTables() {
@@ -88,6 +101,10 @@ function createDungeonMap() {
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
 }
 
+function randomSettingSeed() {
+  return SETTING_SEEDS[Math.floor(Math.random() * SETTING_SEEDS.length)];
+}
+
 function startEditingMap() {
   mapName = '';
   mapNameInput.value = '';
@@ -95,7 +112,9 @@ function startEditingMap() {
   else buildPalette();
   mapControls.style.display = 'block';
   drawMap();
-  display.textContent = 'Editing new map\n0. Return';
+  display.textContent = numberedMap
+    ? 'Editing new map\n0. Return'
+    : 'Editing new map\nS. Generate Seed\n0. Return';
   mode = 'editmap';
 }
 
@@ -458,7 +477,9 @@ function handleInput(text) {
   } else if (mode === 'log') {
     if (text === '0') showMainMenu();
   } else if (mode === 'editmap') {
-    if (text === '0') {
+    if (!numberedMap && text.toLowerCase() === 's') {
+      display.textContent += '\n' + randomSettingSeed();
+    } else if (text === '0') {
       showMainMenu();
       palette.style.display = 'none';
       colorPaletteEl.style.display = 'none';
@@ -805,7 +826,7 @@ newMapBtn.addEventListener('click', () => {
     mapNameInput.value = '';
     mapControls.style.display = 'block';
     drawMap();
-    display.textContent = 'Editing new region map\n0. Return';
+    display.textContent = 'Editing new region map\nS. Generate Seed\n0. Return';
     mode = 'editmap';
   } else if (location.hash === '#world') {
     createWorldMap();
