@@ -62,6 +62,42 @@ function generateRegionMap(size) {
   });
 }
 
+function createWorldMap() {
+  const size = 10;
+  numberedMap = true;
+  selectedColor = colorPalette[0];
+  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
+  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+}
+
+function createRegionMap() {
+  const size = 20;
+  numberedMap = false;
+  selectedColor = colorPalette[0];
+  generateRegionMap(size);
+}
+
+function createDungeonMap() {
+  const size = 30;
+  numberedMap = true;
+  selectedColor = colorPalette[0];
+  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
+  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+}
+
+function startEditingMap() {
+  mapName = '';
+  mapNameInput.value = '';
+  if (numberedMap) buildColorPalette();
+  else buildPalette();
+  mapControls.style.display = 'block';
+  drawMap();
+  display.textContent = 'Editing new map\n0. Return';
+  mode = 'editmap';
+}
+
 
 function buildColorPalette() {
   colorPaletteEl.innerHTML = '';
@@ -616,39 +652,21 @@ function handleInput(text) {
       showGeneratorMenu();
     }
   } else if (mode === 'newMapType') {
-    let size = 10;
-    selectedColor = colorPalette[0];
     switch (text) {
       case '1':
-        size = 10; // world map
-        numberedMap = true;
-        mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-        mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-        mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+        createWorldMap();
         break;
       case '2':
-        size = 20; // region map
-        numberedMap = false;
-        generateRegionMap(size);
+        createRegionMap();
         break;
       case '3':
-        size = 30; // dungeon map
-        numberedMap = true;
-        mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-        mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-        mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+        createDungeonMap();
         break;
       default:
         showMapMenu();
         return;
     }
-    mapName = '';
-    mapNameInput.value = '';
-    if (numberedMap) buildColorPalette(); else buildPalette();
-    mapControls.style.display = 'block';
-    drawMap();
-    display.textContent = 'Editing new map\n0. Return';
-    mode = 'editmap';
+    startEditingMap();
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
@@ -770,6 +788,7 @@ saveMapBtn.addEventListener('click', () => {
 newMapBtn.addEventListener('click', () => {
   display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
   mode = 'newMapType';
+  input.focus();
 });
 
 (async () => {
