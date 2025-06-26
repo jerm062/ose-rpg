@@ -9,7 +9,7 @@ window.onload = function () {
   let currentChar = null;
   let pendingClass = null;
 
-  const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#383838'];
+  const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
   const classes = [
     'Fighter',
@@ -420,7 +420,14 @@ window.onload = function () {
 
   function printMessage(msg) {
     if (gameDisplay) {
-      gameDisplay.textContent += (msg + '\n');
+      gameDisplay.textContent += msg + '\n';
+      gameDisplay.scrollTop = gameDisplay.scrollHeight;
+    }
+  }
+
+  function printHTML(html) {
+    if (gameDisplay) {
+      gameDisplay.innerHTML += html + '<br>';
       gameDisplay.scrollTop = gameDisplay.scrollHeight;
     }
   }
@@ -511,7 +518,7 @@ window.onload = function () {
           phase = 'religionNone';
         } else if (choice === 'Monotheistic') {
           currentChar.religion = { type: 'monotheistic' };
-          printMessage('What do you call your God?');
+          printMessage('Where does your faith lie heretic one?');
           phase = 'religionMono';
         } else {
           currentChar.religion = { type: 'polytheistic' };
@@ -619,19 +626,52 @@ window.onload = function () {
       const idx = parseInt(text) - 1;
       if (colorPalette[idx]) {
         currentChar.color = colorPalette[idx];
-        socket.emit('saveCharacter', currentChar);
-        if (currentChar.homeTown && currentChar.homeTown.name) {
-          const ht = currentChar.homeTown;
-          const summary = `${ht.name} - ${ht.biome}, ${ht.theme}, seeks ${ht.ambition}, landmark: ${ht.landmark}, government: ${ht.government}`;
-          socket.emit('addLore', { chapter: 'locations', text: summary });
-        }
-        localStorage.setItem('characterName', currentChar.name);
-        localStorage.setItem('characterColor', currentChar.color);
-        printMessage('Character creation complete!');
-        phase = 'loading';
+        const poem =
+          "This miserable way\n" +
+          "is taken by the sorry souls of those\n" +
+          "who lived without disgrace and without praise.\n" +
+          "They now commingle with the coward angels,\n" +
+          "the company of those who were not rebels\n" +
+          "nor faithful to their God, but stood apart.\n" +
+          "The heavens, that their beauty not be lessened,\n" +
+          "have cast them out, nor will deep Hell receive them —\n" +
+          "even the wicked cannot glory in them.";
+        printMessage(poem);
+        printHTML(
+          `<span style="font-family:'Jacquarda Bastarda 9',cursive;">Give your blood to these lands?</span>`
+        );
+        printMessage('1. from my hands\n2. from my cheeks\n3. from my groin');
+        phase = 'bloodChoice';
       } else {
         printMessage('Invalid choice.');
       }
+    } else if (phase === 'bloodChoice') {
+      if (text === '1') {
+        currentChar.status = currentChar.status || [];
+        if (!currentChar.status.includes('scars on hands'))
+          currentChar.status.push('scars on hands');
+      } else if (text === '2') {
+        currentChar.status = currentChar.status || [];
+        if (!currentChar.status.includes('scars on face'))
+          currentChar.status.push('scars on face');
+      } else if (text === '3') {
+        currentChar.status = currentChar.status || [];
+        if (!currentChar.status.includes('castrated'))
+          currentChar.status.push('castrated');
+      } else {
+        printMessage('Invalid choice.');
+        return;
+      }
+      socket.emit('saveCharacter', currentChar);
+      if (currentChar.homeTown && currentChar.homeTown.name) {
+        const ht = currentChar.homeTown;
+        const summary = `${ht.name} - ${ht.biome}, ${ht.theme}, seeks ${ht.ambition}, landmark: ${ht.landmark}, government: ${ht.government}`;
+        socket.emit('addLore', { chapter: 'locations', text: summary });
+      }
+      localStorage.setItem('characterName', currentChar.name);
+      localStorage.setItem('characterColor', currentChar.color);
+      printMessage('Character creation complete!');
+      phase = 'loading';
     } else if (phase === 'menu') {
       switch (text) {
         case '1':
@@ -750,7 +790,9 @@ window.onload = function () {
 
   function finalizeCharacter() {
     printMessage('Choose a color for your chat name:');
-    colorPalette.forEach((c,i)=>printMessage(`${i+1}. ${c}`));
+    colorPalette.forEach((c, i) =>
+      printHTML(`${i + 1}. <span style="color:${c}">${c}</span>`)
+    );
     phase = 'pickColor';
   }
 
