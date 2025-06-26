@@ -9,12 +9,14 @@ const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
 const newMapBtn = document.getElementById('newMapBtn');
-const fillMapBtn = document.getElementById('fillMapBtn');
 const readyDisplay = document.getElementById('readyDisplay');
 const ctx = canvas.getContext('2d');
 const cellSize = TILE_SIZE;
 let mode = 'main';
 let mapData = [];
+let mapHidden = [];
+let mapNotes = [];
+let lastTrail = null;
 let mapName = '';
 let selectedTile = '';
 let selectedColor = '#000000';
@@ -27,6 +29,8 @@ const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47
 
 function generateRegionMap(size) {
   mapData = Array.from({ length: size }, () => Array(size).fill(''));
+  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
   const features = ['Village','Ruins','Forest','Lake','Mount','Caves','Tower','Keep','Mine','Shrine'];
   features.forEach((f) => {
     const x = Math.floor(Math.random() * size);
@@ -130,6 +134,7 @@ function showMapMenu() {
     '1. New map\n' +
     '2. Map list\n' +
     '3. Share map\n' +
+    '4. Delete map\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
@@ -163,13 +168,37 @@ function drawMap() {
     for (let x = 0; x < mapData[y].length; x++) {
       const cell = mapData[y][x];
       if (typeof cell === 'string' && cell && !cell.startsWith('#') && !tileImages[cell]) {
-        ctx.fillStyle = '#222';
-        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-        ctx.fillStyle = '#fff';
-        ctx.font = '14px "Tiny5", monospace';
-        ctx.fillText(cell, x * cellSize + 8, y * cellSize + 22);
+        if (/^[-~+][hv]$/.test(cell)) {
+          ctx.fillStyle = '#222';
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+          ctx.strokeStyle = cell[0] === '+' ? 'red' : cell[0] === '~' ? '#666' : '#fff';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          if (cell[1] === 'h') {
+            ctx.moveTo(x * cellSize, y * cellSize + cellSize/2);
+            ctx.lineTo((x+1) * cellSize, y * cellSize + cellSize/2);
+          } else {
+            ctx.moveTo(x * cellSize + cellSize/2, y * cellSize);
+            ctx.lineTo(x * cellSize + cellSize/2, (y+1) * cellSize);
+          }
+          ctx.stroke();
+        } else {
+          ctx.fillStyle = '#222';
+          ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+          ctx.fillStyle = '#fff';
+          ctx.font = '14px "Tiny5", monospace';
+          ctx.fillText(cell, x * cellSize + 8, y * cellSize + 22);
+        }
       } else {
         drawTile(ctx, cell, x * cellSize, y * cellSize);
+      }
+      if (mapHidden[y] && mapHidden[y][x]) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+      if (mapNotes[y] && mapNotes[y][x]) {
+        ctx.fillStyle = 'yellow';
+        ctx.fillRect(x * cellSize + cellSize-6, y * cellSize + cellSize-6, 5, 5);
       }
       if (numberedMap) {
         ctx.fillStyle = '#fff';
@@ -305,6 +334,10 @@ function handleInput(text) {
       case '3':
         socket.emit('getMapList');
         mode = 'sharemaplist';
+        break;
+      case '4':
+        socket.emit('getMapList');
+        mode = 'deletemaplist';
         break;
       case '0':
         showMainMenu();
@@ -518,6 +551,8 @@ function handleInput(text) {
         size = 10; // world map
         numberedMap = true;
         mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
+        mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+        mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
         break;
       case '2':
         size = 20; // region map
@@ -528,6 +563,8 @@ function handleInput(text) {
         size = 30; // dungeon map
         numberedMap = true;
         mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
+        mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
+        mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
         break;
       default:
         showMapMenu();
@@ -550,6 +587,9 @@ function handleInput(text) {
     mode = 'editmap';
   } else if (mode === 'sharemap') {
     socket.emit('shareMap', text);
+    showMainMenu();
+  } else if (mode === 'deletemap') {
+    socket.emit('deleteMap', text);
     showMainMenu();
   } else if (mode === 'savechar') {
     try {
@@ -576,7 +616,9 @@ socket.on('logUpdate', (entry) => {
 });
 
 socket.on('mapData', (data) => {
-  mapData = data;
+  mapData = data.cells;
+  mapHidden = data.hidden || mapData.map(r => r.map(() => true));
+  mapNotes = data.notes || mapData.map(r => r.map(() => ''));
   numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#');
   if (numberedMap) buildColorPalette(); else buildPalette();
   drawMap();
@@ -591,6 +633,7 @@ socket.on('mapList', (list) => {
   display.textContent = 'Maps:\n' + list.join('\n') + '\nEnter name:';
   if (mode === 'editmaplist') mode = 'loadmap';
   else if (mode === 'sharemaplist') mode = 'sharemap';
+  else if (mode === 'deletemaplist') mode = 'deletemap';
 });
 
 socket.on('readyList', (list) => {
@@ -599,39 +642,62 @@ socket.on('readyList', (list) => {
     .join('\n');
 });
 
+
 canvas.addEventListener('click', (ev) => {
-  if (mode !== 'editmap') return;
+  if (mode !== 'editmap' || ev.button !== 0) return;
   const x = Math.floor(ev.offsetX / cellSize);
   const y = Math.floor(ev.offsetY / cellSize);
   if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
-    if (numberedMap) {
-      mapData[y][x] = selectedColor;
+    if (ev.ctrlKey) {
+      const note = prompt('Square description:', mapNotes[y][x] || '');
+      if (note !== null) {
+        mapNotes[y][x] = note;
+        socket.emit('setMapNote', { x, y, text: note });
+      }
     } else {
-      mapData[y][x] = selectedTile;
+      if (numberedMap) {
+        mapData[y][x] = selectedColor;
+        lastTrail = null;
+      } else {
+        if (['-','~','+'].includes(selectedTile)) {
+          let orient = 'h';
+          if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
+            orient = lastTrail.x !== x ? 'h' : 'v';
+          }
+          mapData[y][x] = selectedTile + orient;
+          lastTrail = {x,y};
+        } else {
+          mapData[y][x] = selectedTile;
+          lastTrail = null;
+        }
+      }
+      socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
     }
     drawMap();
-    socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
+  }
+});
+
+canvas.addEventListener('contextmenu', (ev) => {
+  if (mode !== 'editmap') return;
+  ev.preventDefault();
+  const x = Math.floor(ev.offsetX / cellSize);
+  const y = Math.floor(ev.offsetY / cellSize);
+  if (mapHidden[y] && typeof mapHidden[y][x] !== 'undefined') {
+    mapHidden[y][x] = !mapHidden[y][x];
+    drawMap();
+    socket.emit('setHiddenCell', { x, y, hidden: mapHidden[y][x] });
   }
 });
 
 saveMapBtn.addEventListener('click', () => {
   const name = mapNameInput.value.trim() || mapName || 'unnamed';
   mapName = name;
-socket.emit('saveMap', { name, data: mapData });
+  socket.emit('saveMap', { name, data: { cells: mapData, hidden: mapHidden, notes: mapNotes } });
 });
 
 newMapBtn.addEventListener('click', () => {
   display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
   mode = 'newMapType';
-});
-
-fillMapBtn.addEventListener('click', () => {
-  if (mode !== 'editmap') return;
-  for (let y = 0; y < mapData.length; y++) {
-    mapData[y].fill(numberedMap ? selectedColor : selectedTile);
-  }
-  drawMap();
-  socket.emit('fillMap', numberedMap ? selectedColor : selectedTile);
 });
 
 (async () => {

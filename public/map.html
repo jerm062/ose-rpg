@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Map</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Micro+5+Charted&display=swap">
   <style>
     body {
       font-family: 'Tiny5', monospace;
@@ -27,6 +27,7 @@
     document.getElementById('themeStylesheet').href = theme;
   </script>
   <canvas id="mapCanvas" width="600" height="600"></canvas>
+  <pre id="legend"></pre>
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -37,7 +38,23 @@
     const ctx = canvas.getContext('2d');
 
     let mapData = [];
+    let mapHidden = [];
     let tokens = {};
+    const legendEl = document.getElementById('legend');
+    const LEGEND = {
+      V: 'Village',
+      R: 'Ruins',
+      F: 'Forest',
+      L: 'Lake',
+      M: 'Mount/Mine',
+      C: 'Caves',
+      T: 'Tower',
+      K: 'Keep',
+      S: 'Shrine'
+    };
+    legendEl.textContent = Object.entries(LEGEND)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join('\n');
     const name = localStorage.getItem('characterName') || '';
     let blink = true;
 
@@ -50,7 +67,12 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       for (let y = 0; y < mapData.length; y++) {
         for (let x = 0; x < mapData[y].length; x++) {
-          drawTile(ctx, mapData[y][x], x * TILE_SIZE, y * TILE_SIZE);
+          if (mapHidden[y] && mapHidden[y][x]) {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          } else {
+            drawTile(ctx, mapData[y][x], x * TILE_SIZE, y * TILE_SIZE);
+          }
         }
       }
       ctx.strokeStyle = '#555';
@@ -85,7 +107,8 @@
       socket.emit('getMap');
       socket.emit('getPlayerPositions');
       socket.on('mapData', (data) => {
-        mapData = data;
+        mapData = data.cells;
+        mapHidden = data.hidden || mapData.map(r => r.map(() => true));
         render();
       });
       socket.on('playerPositions', (data) => {

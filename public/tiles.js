@@ -5,28 +5,7 @@ let tilesLoaded = false;
 
 async function loadTileset() {
   if (tilesLoaded) return;
-  try {
-    const iconResp = await fetch('/icons/list');
-    if (iconResp.ok) {
-      const files = await iconResp.json();
-      TILES = files;
-      await Promise.all(
-        files.map((f) => {
-          return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = resolve;
-            img.onerror = resolve;
-            img.src = `/icons/${f}`;
-            tileImages[f] = img;
-          });
-        })
-      );
-      tilesLoaded = true;
-      return;
-    }
-  } catch (e) {
-    console.error('Icon load failed', e);
-  }
+  // Icons directory has been removed; always load from organized tileset
 
   const resp = await fetch('/organized_tileset.json');
   const data = await resp.json();

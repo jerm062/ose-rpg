@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OSE RPG - GM Tools</title>
   <link id="themeStylesheet" rel="stylesheet" href="theme-classic.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&family=Micro+5+Charted&family=Jacquard+12&family=Jacquarda+Bastarda+9&family=Jacquard+24&display=swap">
   <style>
     body {
       font-family: 'Tiny5', monospace;
@@ -78,6 +78,7 @@
   <label>Font:
     <select id="fontPicker">
       <option value="'Tiny5', monospace" selected>tiny5</option>
+      <option value="'Micro 5 Charted', monospace">micro5</option>
       <option value="'Jacquard 12', cursive">Jacquard 12</option>
       <option value="'Jacquarda Bastarda 9', cursive">Jacquarda Bastarda 9</option>
       <option value="'Jacquard 24', cursive">Jacquard 24</option>
@@ -95,7 +96,6 @@
     Map Name: <input id="mapName" />
     <button id="saveMapBtn">Save Map</button>
     <button id="newMapBtn">New Map</button>
-    <button id="fillMapBtn">Fill Map</button>
   </div>
 
   <script src="/socket.io/socket.io.js"></script>
@@ -108,8 +108,10 @@
       document.getElementById('menuDisplay').style.fontFamily = picker.value;
       document.getElementById('logDisplay').style.fontFamily = picker.value;
       document.getElementById('readyDisplay').style.fontFamily = picker.value;
+      document.getElementById('gmInput').style.fontFamily = picker.value;
     };
     document.body.style.fontFamily = picker.value;
+    document.getElementById('gmInput').style.fontFamily = picker.value;
   </script>
   </body>
 </html>
