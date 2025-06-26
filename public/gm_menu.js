@@ -25,6 +25,7 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
+const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 let generatorTables = {};
@@ -120,20 +121,21 @@ function buildColorPalette() {
 function buildPalette() {
   palette.innerHTML = '';
   tiles.forEach((t) => {
-    const c = document.createElement('canvas');
-    c.width = c.height = cellSize;
-    c.className = 'tileBtn';
-    const cctx = c.getContext('2d');
-    drawTile(cctx, t);
-    if (t === selectedTile) c.classList.add('tileSel');
-    c.onclick = () => {
+    const d = document.createElement('div');
+    d.className = 'tileBtn';
+    d.style.display = 'flex';
+    d.style.alignItems = 'center';
+    d.style.justifyContent = 'center';
+    d.textContent = t;
+    if (t === selectedTile) d.classList.add('tileSel');
+    d.onclick = () => {
       selectedTile = t;
       document
         .querySelectorAll('.tileBtn')
         .forEach((b) => b.classList.remove('tileSel'));
-      c.classList.add('tileSel');
+      d.classList.add('tileSel');
     };
-    palette.appendChild(c);
+    palette.appendChild(d);
   });
 }
 
@@ -254,7 +256,7 @@ function drawMap() {
       const cell = mapData[y][x];
       if (typeof cell === 'string' && cell && !cell.startsWith('#') && !tileImages[cell]) {
         if (/^[-~+][hv]$/.test(cell)) {
-          ctx.fillStyle = '#222';
+          ctx.fillStyle = '#000';
           ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
           ctx.strokeStyle = cell[0] === '+' ? 'red' : cell[0] === '~' ? '#666' : '#fff';
           ctx.lineWidth = 2;
@@ -268,7 +270,7 @@ function drawMap() {
           }
           ctx.stroke();
         } else {
-          ctx.fillStyle = '#222';
+          ctx.fillStyle = '#000';
           ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
           ctx.fillStyle = '#fff';
           ctx.font = '14px "Tiny5", monospace';
@@ -293,7 +295,7 @@ function drawMap() {
       }
     }
   }
-  ctx.strokeStyle = '#555';
+  ctx.strokeStyle = '#fff';
   for (let x = 0; x <= mapData[0].length; x++) {
     ctx.beginPath();
     ctx.moveTo(x * cellSize + 0.5, 0);
@@ -792,10 +794,9 @@ newMapBtn.addEventListener('click', () => {
 });
 
 (async () => {
-  await loadTileset();
   await loadTables();
-  tiles = TILES;
-  selectedTile = TILES[0];
+  tiles = TEXT_TILES;
+  selectedTile = TEXT_TILES[0];
   if (location.hash === '#region') {
     generateRegionMap(20);
     numberedMap = false;
@@ -805,6 +806,24 @@ newMapBtn.addEventListener('click', () => {
     mapControls.style.display = 'block';
     drawMap();
     display.textContent = 'Editing new region map\n0. Return';
+    mode = 'editmap';
+  } else if (location.hash === '#world') {
+    createWorldMap();
+    buildColorPalette();
+    mapName = '';
+    mapNameInput.value = '';
+    mapControls.style.display = 'block';
+    drawMap();
+    display.textContent = 'Editing new world map\n0. Return';
+    mode = 'editmap';
+  } else if (location.hash === '#dungeon') {
+    createDungeonMap();
+    buildColorPalette();
+    mapName = '';
+    mapNameInput.value = '';
+    mapControls.style.display = 'block';
+    drawMap();
+    display.textContent = 'Editing new dungeon map\n0. Return';
     mode = 'editmap';
   } else {
     showMainMenu();
