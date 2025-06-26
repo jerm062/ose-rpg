@@ -43,13 +43,25 @@ function generateRegionMap(size) {
   // region maps should be fully visible for the GM when first created
   mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
   mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
-  const features = ['Village','Ruins','Forest','Lake','Mount','Caves','Tower','Keep','Mine','Shrine'];
+  const features = [
+    'Village',
+    'Ruins',
+    'Forest',
+    'Lake',
+    'Mount',
+    'Caves',
+    'Tower',
+    'Keep',
+    'Mine',
+    'Shrine',
+  ];
   features.forEach((f) => {
     const x = Math.floor(Math.random() * size);
     const y = Math.floor(Math.random() * size);
     mapData[y][x] = f[0].toUpperCase();
   });
 }
+
 
 function buildColorPalette() {
   colorPaletteEl.innerHTML = '';
