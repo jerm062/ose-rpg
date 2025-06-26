@@ -25,7 +25,7 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
-const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#383838'];
+const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 function generateRegionMap(size) {
   mapData = Array.from({ length: size }, () => Array(size).fill(''));
