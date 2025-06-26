@@ -92,6 +92,27 @@
       Ranger: 8
     };
 
+    const titles = {
+      Fighter: ['Veteran','Warrior','Swordmaster','Hero','Swashbuckler','Myrmidon','Champion','Superhero','Lord'],
+      Cleric: ['Acolyte','Adept','Priest','Vicar','Curate','Bishop','Lama','Patriarch','High Priest'],
+      'Magic-User': ['Medium','Seer','Conjurer','Theurgist','Thaumaturge','Magician','Enchanter','Warlock','Sorcerer','Wizard'],
+      Thief: ['Rogue','Footpad','Robber','Burglar','Cutpurse','Sharper','Pilferer','Thief','Master Thief'],
+      Assassin: ['Rogue','Footpad','Killer','Murderer','Executioner','Slayer','Shadow','Assassin','Master Assassin'],
+      Barbarian: ['Brute','Rager','Marauder','Raider','Berserker','Warlord','Chieftain','Barbarian Lord'],
+      Bard: ['Minstrel','Lyrist','Raconteur','Troubadour','Skald','Muse','Virtuoso','Maestro'],
+      Druid: ['Adept','Naturalist','Initiate','Seer','Shaman','Druid','High Druid','Great Druid'],
+      Illusionist: ['Prestidigitator','Illusionist','Mirage Maker','Visionist','Phantasmist','Trickster','Master Illusionist'],
+      Knight: ['Squire','Cavalier','Chevalier','Lancer','Banneret','Knight','Champion','Paladin','Lord'],
+      Paladin: ['Gallant','Keeper','Ward','Justicar','Crusader','Paladin','Holy Paladin','Templar','Lord'],
+      Ranger: ['Runner','Scout','Pathfinder','Guide','Warden','Ranger','Guardian','Avenger','Ranger Lord']
+    };
+
+    function getTitle(cls, lvl) {
+      const list = titles[cls];
+      if (!list) return '';
+      return list[Math.min(lvl - 1, list.length - 1)];
+    }
+
     function checkLevelUp(char) {
       while (char.xp >= char.nextLevelXP) {
         char.level = (char.level || 1) + 1;
@@ -117,6 +138,7 @@
       display.innerHTML =
         `<strong>${charData.name}</strong><br>` +
         `Class: <a href="classinfo.html?c=${encodeURIComponent(charData.class)}" target="_blank">${charData.class}</a> ${charData.alignment} Level ${charData.level}<br>` +
+        `Title: ${getTitle(charData.class, charData.level)}<br>` +
         `Career: ${charData.career || ''}<br>` +
         (charData.homeTown && charData.homeTown.name ? `Hometown: ${charData.homeTown.name}<br>` : '') +
         (charData.motivation ? `Motivation: ${charData.motivation}<br>` : '') +

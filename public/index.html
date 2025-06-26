@@ -24,18 +24,18 @@
   <h1 style="font-family:'MedievalSharp',serif;">The Blocland Lands</h1>
   <p><a href="/player.html">▶ Join as Player</a></p>
   <p><a href="/dm.html">🎲 Launch GM Tools</a></p>
-  <p><a href="#" id="toggleTheme">Toggle Dark Mode</a></p>
+  <p><a href="#" id="toggleTheme">Toggle Theme</a></p>
   <script>
     const themeEl = document.getElementById('themeStylesheet');
-    themeEl.href = 'theme-classic.css';
-    localStorage.setItem('theme', 'theme-classic.css');
+    themeEl.href = 'theme-msdos.css';
+    localStorage.setItem('theme', 'theme-msdos.css');
+    const themes = ['theme-msdos.css', 'theme-classic.css', 'theme-dark.css'];
     document.getElementById('toggleTheme').onclick = () => {
-      const newTheme =
-        themeEl.getAttribute('href') === 'theme-dark.css'
-          ? 'theme-classic.css'
-          : 'theme-dark.css';
-      themeEl.href = newTheme;
-      localStorage.setItem('theme', newTheme);
+      const current = themeEl.getAttribute('href');
+      const idx = themes.indexOf(current);
+      const next = themes[(idx + 1) % themes.length];
+      themeEl.href = next;
+      localStorage.setItem('theme', next);
     };
   </script>
 </body>
