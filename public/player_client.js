@@ -134,6 +134,14 @@ window.onload = function () {
     { name: 'Watchman', items: ['lantern', 'trumpet', 'spear'] },
     { name: 'Woodcutter', items: ['axe', 'firewood', "50' rope"] }
   ];
+  const races = ['Human','Dwarf','Elf','Halfling'];
+  const raceLanguages = {
+    Human: ['Common'],
+    Dwarf: ['Common','Dwarvish','Gnome','Goblin','Kobold'],
+    Elf: ['Common','Elvish','Gnoll','Hobgoblin','Orc'],
+    Halfling: ['Common','Halfling','Dwarvish','Goblin','Orc'],
+  };
+  const extraLanguages = ['Draconic','Giant','Hobgoblin','Kobold','Lizardman','Ogre','Pixie','Troglodyte'];
   const xpTable = {
     Fighter: [0, 2000, 4000, 8000, 16000, 32000, 64000, 120000, 240000, 360000],
     Cleric: [0, 1500, 3000, 6000, 12000, 24000, 48000, 90000, 180000, 270000],
@@ -162,6 +170,27 @@ window.onload = function () {
     Paladin: 8,
     Ranger: 8
   };
+
+  const titles = {
+    Fighter: ['Veteran','Warrior','Swordmaster','Hero','Swashbuckler','Myrmidon','Champion','Superhero','Lord'],
+    Cleric: ['Acolyte','Adept','Priest','Vicar','Curate','Bishop','Lama','Patriarch','High Priest'],
+    'Magic-User': ['Medium','Seer','Conjurer','Theurgist','Thaumaturge','Magician','Enchanter','Warlock','Sorcerer','Wizard'],
+    Thief: ['Rogue','Footpad','Robber','Burglar','Cutpurse','Sharper','Pilferer','Thief','Master Thief'],
+    Assassin: ['Rogue','Footpad','Killer','Murderer','Executioner','Slayer','Shadow','Assassin','Master Assassin'],
+    Barbarian: ['Brute','Rager','Marauder','Raider','Berserker','Warlord','Chieftain','Barbarian Lord'],
+    Bard: ['Minstrel','Lyrist','Raconteur','Troubadour','Skald','Muse','Virtuoso','Maestro'],
+    Druid: ['Adept','Naturalist','Initiate','Seer','Shaman','Druid','High Druid','Great Druid'],
+    Illusionist: ['Prestidigitator','Illusionist','Mirage Maker','Visionist','Phantasmist','Trickster','Master Illusionist'],
+    Knight: ['Squire','Cavalier','Chevalier','Lancer','Banneret','Knight','Champion','Paladin','Lord'],
+    Paladin: ['Gallant','Keeper','Ward','Justicar','Crusader','Paladin','Holy Paladin','Templar','Lord'],
+    Ranger: ['Runner','Scout','Pathfinder','Guide','Warden','Ranger','Guardian','Avenger','Ranger Lord']
+  };
+
+  function getTitle(cls, lvl) {
+    const list = titles[cls];
+    if (!list) return '';
+    return list[Math.min(lvl - 1, list.length - 1)];
+  }
 
   const classReqs = {
     Fighter: { STR: 9 },
@@ -242,6 +271,27 @@ window.onload = function () {
     return d6() + d6() + d6();
   }
 
+  function extraLanguageCount(intVal) {
+    if (intVal >= 18) return 3;
+    if (intVal >= 16) return 2;
+    if (intVal >= 13) return 1;
+    return 0;
+  }
+
+  function assignLanguages() {
+    const base = raceLanguages[currentChar.race] || ['Common'];
+    const set = new Set(base);
+    if (currentChar.alignment) set.add(`${currentChar.alignment} language`);
+    let extra = extraLanguageCount((currentChar.stats || {}).INT || 0);
+    const pool = extraLanguages.filter((l) => !set.has(l));
+    while (extra > 0 && pool.length) {
+      const idx = Math.floor(Math.random() * pool.length);
+      set.add(pool.splice(idx, 1)[0]);
+      extra--;
+    }
+    currentChar.languages = Array.from(set);
+  }
+
   function encumbrance(char) {
     let slots = (char.inventory || []).length;
     const coins = char.gold || 0;
@@ -257,6 +307,31 @@ window.onload = function () {
     else if (slots <= 15) mv = '60\'';
     else mv = '30\'';
     return { slots, mv };
+  }
+
+  function rollStatsAndRace() {
+    currentChar.stats = {
+      STR: rollStat(),
+      DEX: rollStat(),
+      CON: rollStat(),
+      INT: rollStat(),
+      WIS: rollStat(),
+      CHA: rollStat(),
+    };
+    printMessage(
+      `Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`
+    );
+    currentChar.race = races[Math.floor(Math.random() * races.length)];
+    currentChar.languages = raceLanguages[currentChar.race].slice();
+    printMessage(`Race: ${currentChar.race}`);
+    classOptions = classes.filter((c) => {
+      const req = classReqs[c] || {};
+      return Object.entries(req).every(([k, v]) => currentChar.stats[k] >= v);
+    });
+    printMessage('Choose a class:');
+    classOptions.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
+    printMessage('Type the number to select or number followed by A for info.');
+    phase = 'chooseClass';
   }
 
   function showMenu() {
@@ -292,9 +367,12 @@ window.onload = function () {
 
   function showCharacterSheet() {
     const s = currentChar.stats || {};
-    printMessage(
-      `Career: ${currentChar.career}`
-    );
+    printMessage(`Class: ${currentChar.class} ${currentChar.alignment} Level ${currentChar.level}`);
+    printMessage(`Title: ${getTitle(currentChar.class, currentChar.level)}`);
+    printMessage(`Career: ${currentChar.career}`);
+    if (currentChar.race) {
+      printMessage(`Race: ${currentChar.race}`);
+    }
     if (currentChar.motivation) {
       printMessage(`Motivation: ${currentChar.motivation}`);
     }
@@ -307,6 +385,9 @@ window.onload = function () {
     printMessage(
       `Active Status: ${(currentChar.status || []).join(', ') || '(none)'}`
     );
+    if (currentChar.languages) {
+      printMessage(`Languages: ${currentChar.languages.join(', ')}`);
+    }
     showMenu();
   }
 
@@ -357,17 +438,7 @@ window.onload = function () {
     currentChar.inventory.push(...career.items);
     printMessage(`Your career is ${career.name}. You start with: ${career.items.join(', ')}`);
     careerButton.style.display = 'none';
-    const hd = hitDie[currentChar.class] || 6;
-    currentChar.level = 1;
-    currentChar.hp = Math.floor(Math.random() * hd) + 1;
-    currentChar.ac = 9;
-    currentChar.xp = 0;
-    currentChar.nextLevelXP = xpTable[currentChar.class][1];
-    const roll = () => Math.floor(Math.random() * 6) + 1;
-    currentChar.gold = (roll() + roll() + roll()) * 10;
-    printMessage(`You have ${currentChar.gold}gp to spend.`);
-    showShopMenu();
-    phase = 'shopMenu';
+    rollStatsAndRace();
   });
 
   function handleInput(text) {
@@ -377,25 +448,7 @@ window.onload = function () {
       phase = 'loading';
     } else if (phase === 'newName') {
       currentChar = { name: text, inventory: [], equipped: [] };
-      currentChar.stats = {
-        STR: rollStat(),
-        DEX: rollStat(),
-        CON: rollStat(),
-        INT: rollStat(),
-        WIS: rollStat(),
-        CHA: rollStat()
-      };
-      printMessage(
-        `Stats rolled: STR ${currentChar.stats.STR}, DEX ${currentChar.stats.DEX}, CON ${currentChar.stats.CON}, INT ${currentChar.stats.INT}, WIS ${currentChar.stats.WIS}, CHA ${currentChar.stats.CHA}`
-      );
-      classOptions = classes.filter((c) => {
-        const req = classReqs[c] || {};
-        return Object.entries(req).every(([k, v]) => currentChar.stats[k] >= v);
-      });
-      printMessage('Choose a class:');
-      classOptions.forEach((c, i) => printMessage(`${i + 1}. ${c}`));
-      printMessage('Type the number to select or number followed by A for info.');
-      phase = 'chooseClass';
+      askHomeTown();
     } else if (phase === 'chooseClass') {
       const infoMatch = text.match(/^(\d+)a$/i);
       if (infoMatch) {
@@ -419,6 +472,14 @@ window.onload = function () {
       if (text.toLowerCase().startsWith('y')) {
         currentChar.class = pendingClass;
         pendingClass = null;
+        const hd = hitDie[currentChar.class] || 6;
+        currentChar.level = 1;
+        currentChar.hp = Math.floor(Math.random() * hd) + 1;
+        currentChar.ac = 9;
+        currentChar.xp = 0;
+        currentChar.nextLevelXP = xpTable[currentChar.class][1];
+        const roll = () => Math.floor(Math.random() * 6) + 1;
+        currentChar.gold = (roll() + roll() + roll()) * 10;
         printMessage('Choose an alignment:');
         alignments.forEach((a, i) => printMessage(`${i + 1}. ${a}`));
         phase = 'chooseAlignment';
@@ -432,6 +493,7 @@ window.onload = function () {
       const idx = parseInt(text) - 1;
       if (alignments[idx]) {
         currentChar.alignment = alignments[idx];
+        assignLanguages();
         printMessage('Religious beliefs?\n1. None\n2. Monotheistic\n3. Polytheistic');
         phase = 'chooseReligion';
       } else {
@@ -459,38 +521,34 @@ window.onload = function () {
       }
     } else if (phase === 'religionNone') {
       currentChar.religion.answer = text;
-      askDeathTaker();
+      askMotivation();
     } else if (phase === 'religionMono') {
       currentChar.religion.deity = text;
       currentChar.inventory.push('religious relic');
       printMessage('You receive a religious relic.');
-      askDeathTaker();
+      askMotivation();
     } else if (phase === 'religionPolyName') {
       currentChar.religion.deity = text;
       printMessage('What are they the God of?');
       phase = 'religionPolyDomain';
     } else if (phase === 'religionPolyDomain') {
       currentChar.religion.domain = text;
-      askDeathTaker();
-    } else if (phase === 'deathTaker') {
-      currentChar.religion.death = text;
-      askHomeTown();
+      askMotivation();
     } else if (phase === 'enterTownName') {
       currentChar.homeTown.name = text;
-      askMotivation();
+      printMessage('Click the Roll Career button to get your career.');
+      careerButton.style.display = 'inline-block';
+      phase = 'chooseCareer';
     } else if (phase === 'chooseMotivation') {
       const idx = parseInt(text) - 1;
       if (motivations[idx]) {
         currentChar.motivation = motivations[idx];
-        askFavoriteFood();
+        printMessage(`You have ${currentChar.gold}gp to spend.`);
+        showShopMenu();
+        phase = 'shopMenu';
       } else {
         printMessage('Invalid choice.');
       }
-    } else if (phase === 'favoriteFood') {
-      currentChar.favoriteFood = text;
-      printMessage('Click the Roll Career button to get your career.');
-      careerButton.style.display = 'inline-block';
-      phase = 'chooseCareer';
     } else if (phase === 'shopMenu') {
       if (text === '1') {
         showShop();
@@ -652,16 +710,6 @@ window.onload = function () {
     printMessage('What brings you to The Bloclands?');
     motivations.forEach((m, i) => printMessage(`${i + 1}. ${m}`));
     phase = 'chooseMotivation';
-  }
-
-  function askFavoriteFood() {
-    printMessage('What is your favorite food?');
-    phase = 'favoriteFood';
-  }
-
-  function askDeathTaker() {
-    printMessage('Who takes you when you die?');
-    phase = 'deathTaker';
   }
 
   function canUseItem(it) {
