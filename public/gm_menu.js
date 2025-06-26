@@ -770,6 +770,7 @@ saveMapBtn.addEventListener('click', () => {
 newMapBtn.addEventListener('click', () => {
   display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
   mode = 'newMapType';
+  input.focus();
 });
 
 (async () => {
