@@ -35,8 +35,7 @@ setting the `OSE_RPG_DATA_DIR` environment variable.
   Click a tile and then a grid cell to place it on the map.
 - The `organized_tiles` directory with tile images must exist in the project
   root. Both `server.js` and `public/tiles.js` load tiles from this folder.
-  Without these assets the map editor, including Region maps, will display
-  blank tiles.
+  Without these assets the map editor will display blank tiles.
 
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.
