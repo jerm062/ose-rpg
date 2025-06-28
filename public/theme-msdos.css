@@ -1,10 +1,10 @@
 :root {
   --bg: #000;
-  --fg: #0f0;
-  --link: #0f0;
-  --border: #0f0;
+  --fg: #fff;
+  --link: #fff;
+  --border: #fff;
   --accent-bg: #000;
-  --accent-fg: #0f0;
+  --accent-fg: #fff;
 }
 
 body {
