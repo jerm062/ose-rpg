@@ -4,7 +4,6 @@ const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
-const colorPaletteEl = document.getElementById('colorPalette');
 const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
@@ -19,14 +18,11 @@ let mapNotes = [];
 let lastTrail = null;
 let mapName = '';
 let selectedTile = '';
-let selectedColor = '#000000';
-let numberedMap = false;
 
 let charNameTemp = '';
 
 let tiles = [];
 const TEXT_TILES = ['.', '#', '+'];
-const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 const SETTING_SEEDS = [
   'Remote valley ruled by jealous spirits',
@@ -55,7 +51,6 @@ async function loadTables() {
 function createDungeonMap() {
   const width = 40;
   const height = 25;
-  numberedMap = false;
   mapData = Array.from({ length: height }, () => Array(width).fill('#'));
   mapHidden = Array.from({ length: height }, () => Array(width).fill(false));
   mapNotes = Array.from({ length: height }, () => Array(width).fill(''));
@@ -109,34 +104,13 @@ function randomSettingSeed() {
 function startEditingMap() {
   mapName = '';
   mapNameInput.value = '';
-  if (numberedMap) buildColorPalette();
-  else buildPalette();
+  buildPalette();
   mapControls.style.display = 'block';
   drawMap();
-  display.textContent = numberedMap
-    ? 'Editing new map\n0. Return'
-    : 'Editing new map\nS. Generate Seed\n0. Return';
+  display.textContent = 'Editing dungeon map\nS. Generate Seed\n0. Return';
   mode = 'editmap';
 }
 
-
-function buildColorPalette() {
-  colorPaletteEl.innerHTML = '';
-  colorPalette.forEach((c) => {
-    const d = document.createElement('div');
-    d.className = 'colorBtn';
-    d.style.background = c;
-    if (c === selectedColor) d.classList.add('colorSel');
-    d.onclick = () => {
-      selectedColor = c;
-      document
-        .querySelectorAll('.colorBtn')
-        .forEach((b) => b.classList.remove('colorSel'));
-      d.classList.add('colorSel');
-    };
-    colorPaletteEl.appendChild(d);
-  });
-}
 
 function buildPalette() {
   palette.innerHTML = '';
@@ -188,7 +162,6 @@ function showMainMenu() {
     '11. Generators';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'main';
 }
@@ -206,7 +179,6 @@ function showCharMenu() {
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'charMenu';
 }
@@ -221,7 +193,6 @@ function showMapMenu() {
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'mapMenu';
 }
@@ -251,7 +222,6 @@ function showGeneratorMenu() {
     '\n0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'genMenu';
 }
@@ -261,7 +231,6 @@ function showTableMenu(title) {
   display.textContent = `${title}\nR. Roll\n0. Return`;
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   charNameTemp = title; // reuse as temp store
   mode = 'genTable';
@@ -320,12 +289,7 @@ function drawMap() {
         ctx.fillStyle = 'yellow';
         ctx.fillRect(x * cellSize + cellSize-6, y * cellSize + cellSize-6, 5, 5);
       }
-      if (numberedMap) {
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px monospace';
-        const idx = y * mapData[0].length + x + 1;
-        ctx.fillText(idx, x * cellSize + 2, y * cellSize + 10);
-      } else if (mapNotes[y] && mapNotes[y][x]) {
+      if (mapNotes[y] && mapNotes[y][x]) {
         const n = noteNumber(x, y);
         if (n) {
           ctx.fillStyle = '#0f0';
@@ -350,13 +314,7 @@ function drawMap() {
   }
   canvas.style.display = 'block';
   if (mode === 'editmap') {
-    if (numberedMap) {
-      colorPaletteEl.style.display = 'block';
-      palette.style.display = 'none';
-    } else {
-      palette.style.display = 'block';
-      colorPaletteEl.style.display = 'none';
-    }
+    palette.style.display = 'block';
   }
 }
 
@@ -498,12 +456,11 @@ function handleInput(text) {
   } else if (mode === 'log') {
     if (text === '0') showMainMenu();
   } else if (mode === 'editmap') {
-    if (!numberedMap && text.toLowerCase() === 's') {
+    if (text.toLowerCase() === 's') {
       display.textContent += '\n' + randomSettingSeed();
     } else if (text === '0') {
       showMainMenu();
       palette.style.display = 'none';
-      colorPaletteEl.style.display = 'none';
       mapControls.style.display = 'none';
     }
   } else if (mode === 'iconName') {
@@ -697,12 +654,11 @@ function handleInput(text) {
     }
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
-    mapName = text;
-    buildPalette();
-    numberedMap = false;
-    mapNameInput.value = mapName;
-    mapControls.style.display = 'block';
-    mode = 'editmap';
+  mapName = text;
+  buildPalette();
+  mapNameInput.value = mapName;
+  mapControls.style.display = 'block';
+  mode = 'editmap';
   } else if (mode === 'sharemap') {
     socket.emit('shareMap', text);
     showMainMenu();
@@ -737,8 +693,7 @@ socket.on('mapData', (data) => {
   mapData = data.cells;
   mapHidden = data.hidden || mapData.map(r => r.map(() => true));
   mapNotes = data.notes || mapData.map(r => r.map(() => ''));
-  numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#') && mapData[0][0].length > 1;
-  if (numberedMap) buildColorPalette(); else buildPalette();
+  buildPalette();
   drawMap();
   if (mode === 'editmap') {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
@@ -773,21 +728,16 @@ canvas.addEventListener('click', (ev) => {
         socket.emit('setMapNote', { x, y, text: note });
       }
     } else {
-      if (numberedMap) {
-        mapData[y][x] = selectedColor;
-        lastTrail = null;
-      } else {
-        if (['-','~','+'].includes(selectedTile)) {
-          let orient = 'h';
-          if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
-            orient = lastTrail.x !== x ? 'h' : 'v';
-          }
-          mapData[y][x] = selectedTile + orient;
-          lastTrail = {x,y};
-        } else {
-          mapData[y][x] = selectedTile;
-          lastTrail = null;
+      if (['-','~','+'].includes(selectedTile)) {
+        let orient = 'h';
+        if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
+          orient = lastTrail.x !== x ? 'h' : 'v';
         }
+        mapData[y][x] = selectedTile + orient;
+        lastTrail = {x, y};
+      } else {
+        mapData[y][x] = selectedTile;
+        lastTrail = null;
       }
       socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
     }
