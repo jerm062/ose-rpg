@@ -32,12 +32,10 @@ setting the `OSE_RPG_DATA_DIR` environment variable.
 - Select **New Dungeon** for a blank dungeon map or **Map list** to load one to edit.
 - Use the map controls to name and **Save Map**.
 - Choose **Share map** to show a saved map to the players.
-- Tiles are loaded from the built in tileset and shown in a scrollable grid.
-  Click a tile and then a grid cell to place it on the map.
+- Use the palette to place ASCII tiles on the grid.
 - The `organized_tiles` directory with tile images must exist in the project
-  root. Both `server.js` and `public/tiles.js` load tiles from this folder.
-  Without these assets the map editor, including Region maps, will display
-  blank tiles.
+  root for character icons only. Without these assets character tokens will
+  display generic markers.
 
 **Lore Book**
 - Players can open the lore book from the main menu to view campaign lore.
