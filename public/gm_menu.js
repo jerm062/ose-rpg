@@ -25,7 +25,7 @@ let numberedMap = false;
 let charNameTemp = '';
 
 let tiles = [];
-const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
+const TEXT_TILES = ['.', '#', '+'];
 const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
 const SETTING_SEEDS = [
@@ -52,54 +52,54 @@ async function loadTables() {
   }
 }
 
-function generateRegionMap(size) {
-  mapData = Array.from({ length: size }, () => Array(size).fill('#000'));
-  // region maps should be fully visible for the GM when first created
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
-  const features = [
-    'Village',
-    'Ruins',
-    'Forest',
-    'Lake',
-    'Mount',
-    'Caves',
-    'Tower',
-    'Keep',
-    'Mine',
-    'Shrine',
-  ];
-  features.forEach((f) => {
-    const x = Math.floor(Math.random() * size);
-    const y = Math.floor(Math.random() * size);
-    mapData[y][x] = f[0].toUpperCase();
-    mapNotes[y][x] = f;
-  });
-}
-
-function createWorldMap() {
-  const size = 10;
-  numberedMap = true;
-  selectedColor = colorPalette[0];
-  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
-}
-
-function createRegionMap() {
-  const size = 20;
-  numberedMap = false;
-  selectedColor = colorPalette[0];
-  generateRegionMap(size);
-}
-
 function createDungeonMap() {
-  const size = 30;
-  numberedMap = true;
-  selectedColor = colorPalette[0];
-  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+  const width = 40;
+  const height = 25;
+  numberedMap = false;
+  mapData = Array.from({ length: height }, () => Array(width).fill('#'));
+  mapHidden = Array.from({ length: height }, () => Array(width).fill(false));
+  mapNotes = Array.from({ length: height }, () => Array(width).fill(''));
+  const rooms = [];
+  const roomCount = 8;
+  for (let i = 0; i < roomCount; i++) {
+    const w = 4 + Math.floor(Math.random() * 5);
+    const h = 4 + Math.floor(Math.random() * 5);
+    const x = 1 + Math.floor(Math.random() * (width - w - 1));
+    const y = 1 + Math.floor(Math.random() * (height - h - 1));
+    let overlap = false;
+    for (const r of rooms) {
+      if (x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y) {
+        overlap = true;
+        break;
+      }
+    }
+    if (overlap) {
+      i--;
+      continue;
+    }
+    for (let yy = y; yy < y + h; yy++) {
+      for (let xx = x; xx < x + w; xx++) {
+        mapData[yy][xx] = '.';
+      }
+    }
+    rooms.push({ x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) });
+  }
+  for (let i = 1; i < rooms.length; i++) {
+    const r1 = rooms[i - 1];
+    const r2 = rooms[i];
+    let x = r1.cx;
+    let y = r1.cy;
+    while (x !== r2.cx) {
+      mapData[y][x] = '.';
+      x += Math.sign(r2.cx - x);
+    }
+    while (y !== r2.cy) {
+      mapData[y][x] = '.';
+      y += Math.sign(r2.cy - y);
+    }
+  }
+  tiles = TEXT_TILES;
+  selectedTile = TEXT_TILES[0];
 }
 
 function randomSettingSeed() {
@@ -214,7 +214,7 @@ function showCharMenu() {
 function showMapMenu() {
   display.textContent =
     'Map Menu\n' +
-    '1. New map\n' +
+    '1. New Dungeon\n' +
     '2. Map list\n' +
     '3. Share map\n' +
     '4. Delete map\n' +
@@ -454,8 +454,8 @@ function handleInput(text) {
   } else if (mode === 'mapMenu') {
     switch (text) {
       case '1':
-        display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
-        mode = 'newMapType';
+        createDungeonMap();
+        startEditingMap();
         break;
       case '2':
         socket.emit('getMapList');
@@ -695,22 +695,6 @@ function handleInput(text) {
     } else if (text === '0') {
       showGeneratorMenu();
     }
-  } else if (mode === 'newMapType') {
-    switch (text) {
-      case '1':
-        createWorldMap();
-        break;
-      case '2':
-        createRegionMap();
-        break;
-      case '3':
-        createDungeonMap();
-        break;
-      default:
-        showMapMenu();
-        return;
-    }
-    startEditingMap();
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
     mapName = text;
@@ -753,7 +737,7 @@ socket.on('mapData', (data) => {
   mapData = data.cells;
   mapHidden = data.hidden || mapData.map(r => r.map(() => true));
   mapNotes = data.notes || mapData.map(r => r.map(() => ''));
-  numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#');
+  numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#') && mapData[0][0].length > 1;
   if (numberedMap) buildColorPalette(); else buildPalette();
   drawMap();
   if (mode === 'editmap') {
@@ -830,8 +814,8 @@ saveMapBtn.addEventListener('click', () => {
 });
 
 newMapBtn.addEventListener('click', () => {
-  display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
-  mode = 'newMapType';
+  createDungeonMap();
+  startEditingMap();
   input.focus();
 });
 
@@ -839,28 +823,9 @@ newMapBtn.addEventListener('click', () => {
   await loadTables();
   tiles = TEXT_TILES;
   selectedTile = TEXT_TILES[0];
-  if (location.hash === '#region') {
-    generateRegionMap(20);
-    numberedMap = false;
-    buildPalette();
-    mapName = '';
-    mapNameInput.value = '';
-    mapControls.style.display = 'block';
-    drawMap();
-    display.textContent = 'Editing new region map\nS. Generate Seed\n0. Return';
-    mode = 'editmap';
-  } else if (location.hash === '#world') {
-    createWorldMap();
-    buildColorPalette();
-    mapName = '';
-    mapNameInput.value = '';
-    mapControls.style.display = 'block';
-    drawMap();
-    display.textContent = 'Editing new world map\n0. Return';
-    mode = 'editmap';
-  } else if (location.hash === '#dungeon') {
+  if (location.hash === '#dungeon') {
     createDungeonMap();
-    buildColorPalette();
+    buildPalette();
     mapName = '';
     mapNameInput.value = '';
     mapControls.style.display = 'block';
