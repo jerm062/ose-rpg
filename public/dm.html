@@ -43,24 +43,6 @@
       color: var(--fg);
       font-family: 'Tiny5', monospace;
     }
-    #colorPalette {
-      position: fixed;
-      right: 0.5rem;
-      top: 0.5rem;
-      bottom: 0.5rem;
-      width: 100px;
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
-      grid-auto-rows: 30px;
-      gap: 2px;
-    }
-    .colorBtn {
-      border: 1px solid var(--border);
-      cursor: pointer;
-      width: 30px;
-      height: 30px;
-    }
-    .colorSel { outline: 2px solid red; }
     .tileSel { outline: 2px solid red; }
     .char { color: deepskyblue; }
     .location { color: violet; }
@@ -85,14 +67,13 @@
     </select>
   </label>
   <p><a href="index.html">&#x2B05; Back</a></p>
-  <p><a href="dm.html#region">🗺️ Region Map Maker</a></p>
+  <p><a href="dm.html#dungeon">🗺️ Dungeon Map Maker</a></p>
   <pre id="menuDisplay"></pre>
   <input id="gmInput" autocomplete="off" />
   <pre id="readyDisplay"></pre>
   <pre id="logDisplay"></pre>
   <canvas id="hexMap" width="600" height="600" style="display:none"></canvas>
   <div id="tilePalette" style="display:none"></div>
-  <div id="colorPalette" style="display:none"></div>
   <div id="mapControls" style="display:none">
     Map Name: <input id="mapName" />
     <button id="saveMapBtn">Save Map</button>

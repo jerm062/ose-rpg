@@ -4,7 +4,6 @@ const input = document.getElementById('gmInput');
 const logDisplay = document.getElementById('logDisplay');
 const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
-const colorPaletteEl = document.getElementById('colorPalette');
 const mapControls = document.getElementById('mapControls');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
@@ -19,14 +18,11 @@ let mapNotes = [];
 let lastTrail = null;
 let mapName = '';
 let selectedTile = '';
-let selectedColor = '#000000';
-let numberedMap = false;
 
 let charNameTemp = '';
 
 let tiles = [];
-const TEXT_TILES = ['V','R','F','L','M','C','T','K','S','-','~','+'];
-const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
+const TEXT_TILES = ['.', '#', '+'];
 
 const SETTING_SEEDS = [
   'Remote valley ruled by jealous spirits',
@@ -52,54 +48,53 @@ async function loadTables() {
   }
 }
 
-function generateRegionMap(size) {
-  mapData = Array.from({ length: size }, () => Array(size).fill('#000'));
-  // region maps should be fully visible for the GM when first created
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(false));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
-  const features = [
-    'Village',
-    'Ruins',
-    'Forest',
-    'Lake',
-    'Mount',
-    'Caves',
-    'Tower',
-    'Keep',
-    'Mine',
-    'Shrine',
-  ];
-  features.forEach((f) => {
-    const x = Math.floor(Math.random() * size);
-    const y = Math.floor(Math.random() * size);
-    mapData[y][x] = f[0].toUpperCase();
-    mapNotes[y][x] = f;
-  });
-}
-
-function createWorldMap() {
-  const size = 10;
-  numberedMap = true;
-  selectedColor = colorPalette[0];
-  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
-}
-
-function createRegionMap() {
-  const size = 20;
-  numberedMap = false;
-  selectedColor = colorPalette[0];
-  generateRegionMap(size);
-}
-
 function createDungeonMap() {
-  const size = 30;
-  numberedMap = true;
-  selectedColor = colorPalette[0];
-  mapData = Array.from({ length: size }, () => Array(size).fill(selectedColor));
-  mapHidden = Array.from({ length: size }, () => Array(size).fill(true));
-  mapNotes = Array.from({ length: size }, () => Array(size).fill(''));
+  const width = 40;
+  const height = 25;
+  mapData = Array.from({ length: height }, () => Array(width).fill('#'));
+  mapHidden = Array.from({ length: height }, () => Array(width).fill(false));
+  mapNotes = Array.from({ length: height }, () => Array(width).fill(''));
+  const rooms = [];
+  const roomCount = 8;
+  for (let i = 0; i < roomCount; i++) {
+    const w = 4 + Math.floor(Math.random() * 5);
+    const h = 4 + Math.floor(Math.random() * 5);
+    const x = 1 + Math.floor(Math.random() * (width - w - 1));
+    const y = 1 + Math.floor(Math.random() * (height - h - 1));
+    let overlap = false;
+    for (const r of rooms) {
+      if (x < r.x + r.w + 1 && x + w + 1 > r.x && y < r.y + r.h + 1 && y + h + 1 > r.y) {
+        overlap = true;
+        break;
+      }
+    }
+    if (overlap) {
+      i--;
+      continue;
+    }
+    for (let yy = y; yy < y + h; yy++) {
+      for (let xx = x; xx < x + w; xx++) {
+        mapData[yy][xx] = '.';
+      }
+    }
+    rooms.push({ x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) });
+  }
+  for (let i = 1; i < rooms.length; i++) {
+    const r1 = rooms[i - 1];
+    const r2 = rooms[i];
+    let x = r1.cx;
+    let y = r1.cy;
+    while (x !== r2.cx) {
+      mapData[y][x] = '.';
+      x += Math.sign(r2.cx - x);
+    }
+    while (y !== r2.cy) {
+      mapData[y][x] = '.';
+      y += Math.sign(r2.cy - y);
+    }
+  }
+  tiles = TEXT_TILES;
+  selectedTile = TEXT_TILES[0];
 }
 
 function randomSettingSeed() {
@@ -109,34 +104,13 @@ function randomSettingSeed() {
 function startEditingMap() {
   mapName = '';
   mapNameInput.value = '';
-  if (numberedMap) buildColorPalette();
-  else buildPalette();
+  buildPalette();
   mapControls.style.display = 'block';
   drawMap();
-  display.textContent = numberedMap
-    ? 'Editing new map\n0. Return'
-    : 'Editing new map\nS. Generate Seed\n0. Return';
+  display.textContent = 'Editing dungeon map\nS. Generate Seed\n0. Return';
   mode = 'editmap';
 }
 
-
-function buildColorPalette() {
-  colorPaletteEl.innerHTML = '';
-  colorPalette.forEach((c) => {
-    const d = document.createElement('div');
-    d.className = 'colorBtn';
-    d.style.background = c;
-    if (c === selectedColor) d.classList.add('colorSel');
-    d.onclick = () => {
-      selectedColor = c;
-      document
-        .querySelectorAll('.colorBtn')
-        .forEach((b) => b.classList.remove('colorSel'));
-      d.classList.add('colorSel');
-    };
-    colorPaletteEl.appendChild(d);
-  });
-}
 
 function buildPalette() {
   palette.innerHTML = '';
@@ -188,7 +162,6 @@ function showMainMenu() {
     '11. Generators';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'main';
 }
@@ -206,7 +179,6 @@ function showCharMenu() {
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'charMenu';
 }
@@ -214,14 +186,13 @@ function showCharMenu() {
 function showMapMenu() {
   display.textContent =
     'Map Menu\n' +
-    '1. New map\n' +
+    '1. New Dungeon\n' +
     '2. Map list\n' +
     '3. Share map\n' +
     '4. Delete map\n' +
     '0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'mapMenu';
 }
@@ -251,7 +222,6 @@ function showGeneratorMenu() {
     '\n0. Return';
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   mode = 'genMenu';
 }
@@ -261,7 +231,6 @@ function showTableMenu(title) {
   display.textContent = `${title}\nR. Roll\n0. Return`;
   canvas.style.display = 'none';
   palette.style.display = 'none';
-  colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
   charNameTemp = title; // reuse as temp store
   mode = 'genTable';
@@ -320,12 +289,7 @@ function drawMap() {
         ctx.fillStyle = 'yellow';
         ctx.fillRect(x * cellSize + cellSize-6, y * cellSize + cellSize-6, 5, 5);
       }
-      if (numberedMap) {
-        ctx.fillStyle = '#fff';
-        ctx.font = '10px monospace';
-        const idx = y * mapData[0].length + x + 1;
-        ctx.fillText(idx, x * cellSize + 2, y * cellSize + 10);
-      } else if (mapNotes[y] && mapNotes[y][x]) {
+      if (mapNotes[y] && mapNotes[y][x]) {
         const n = noteNumber(x, y);
         if (n) {
           ctx.fillStyle = '#0f0';
@@ -350,13 +314,7 @@ function drawMap() {
   }
   canvas.style.display = 'block';
   if (mode === 'editmap') {
-    if (numberedMap) {
-      colorPaletteEl.style.display = 'block';
-      palette.style.display = 'none';
-    } else {
-      palette.style.display = 'block';
-      colorPaletteEl.style.display = 'none';
-    }
+    palette.style.display = 'block';
   }
 }
 
@@ -454,8 +412,8 @@ function handleInput(text) {
   } else if (mode === 'mapMenu') {
     switch (text) {
       case '1':
-        display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
-        mode = 'newMapType';
+        createDungeonMap();
+        startEditingMap();
         break;
       case '2':
         socket.emit('getMapList');
@@ -498,12 +456,11 @@ function handleInput(text) {
   } else if (mode === 'log') {
     if (text === '0') showMainMenu();
   } else if (mode === 'editmap') {
-    if (!numberedMap && text.toLowerCase() === 's') {
+    if (text.toLowerCase() === 's') {
       display.textContent += '\n' + randomSettingSeed();
     } else if (text === '0') {
       showMainMenu();
       palette.style.display = 'none';
-      colorPaletteEl.style.display = 'none';
       mapControls.style.display = 'none';
     }
   } else if (mode === 'iconName') {
@@ -695,30 +652,13 @@ function handleInput(text) {
     } else if (text === '0') {
       showGeneratorMenu();
     }
-  } else if (mode === 'newMapType') {
-    switch (text) {
-      case '1':
-        createWorldMap();
-        break;
-      case '2':
-        createRegionMap();
-        break;
-      case '3':
-        createDungeonMap();
-        break;
-      default:
-        showMapMenu();
-        return;
-    }
-    startEditingMap();
   } else if (mode === 'loadmap') {
     socket.emit('loadMap', text);
-    mapName = text;
-    buildPalette();
-    numberedMap = false;
-    mapNameInput.value = mapName;
-    mapControls.style.display = 'block';
-    mode = 'editmap';
+  mapName = text;
+  buildPalette();
+  mapNameInput.value = mapName;
+  mapControls.style.display = 'block';
+  mode = 'editmap';
   } else if (mode === 'sharemap') {
     socket.emit('shareMap', text);
     showMainMenu();
@@ -753,8 +693,7 @@ socket.on('mapData', (data) => {
   mapData = data.cells;
   mapHidden = data.hidden || mapData.map(r => r.map(() => true));
   mapNotes = data.notes || mapData.map(r => r.map(() => ''));
-  numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#');
-  if (numberedMap) buildColorPalette(); else buildPalette();
+  buildPalette();
   drawMap();
   if (mode === 'editmap') {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
@@ -789,21 +728,16 @@ canvas.addEventListener('click', (ev) => {
         socket.emit('setMapNote', { x, y, text: note });
       }
     } else {
-      if (numberedMap) {
-        mapData[y][x] = selectedColor;
-        lastTrail = null;
-      } else {
-        if (['-','~','+'].includes(selectedTile)) {
-          let orient = 'h';
-          if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
-            orient = lastTrail.x !== x ? 'h' : 'v';
-          }
-          mapData[y][x] = selectedTile + orient;
-          lastTrail = {x,y};
-        } else {
-          mapData[y][x] = selectedTile;
-          lastTrail = null;
+      if (['-','~','+'].includes(selectedTile)) {
+        let orient = 'h';
+        if (lastTrail && Math.abs(lastTrail.x - x) + Math.abs(lastTrail.y - y) === 1) {
+          orient = lastTrail.x !== x ? 'h' : 'v';
         }
+        mapData[y][x] = selectedTile + orient;
+        lastTrail = {x, y};
+      } else {
+        mapData[y][x] = selectedTile;
+        lastTrail = null;
       }
       socket.emit('updateMapCell', { x, y, value: mapData[y][x] });
     }
@@ -830,8 +764,8 @@ saveMapBtn.addEventListener('click', () => {
 });
 
 newMapBtn.addEventListener('click', () => {
-  display.textContent = 'Map Type\n1. World\n2. Region\n3. Dungeon\n0. Cancel';
-  mode = 'newMapType';
+  createDungeonMap();
+  startEditingMap();
   input.focus();
 });
 
@@ -839,28 +773,9 @@ newMapBtn.addEventListener('click', () => {
   await loadTables();
   tiles = TEXT_TILES;
   selectedTile = TEXT_TILES[0];
-  if (location.hash === '#region') {
-    generateRegionMap(20);
-    numberedMap = false;
-    buildPalette();
-    mapName = '';
-    mapNameInput.value = '';
-    mapControls.style.display = 'block';
-    drawMap();
-    display.textContent = 'Editing new region map\nS. Generate Seed\n0. Return';
-    mode = 'editmap';
-  } else if (location.hash === '#world') {
-    createWorldMap();
-    buildColorPalette();
-    mapName = '';
-    mapNameInput.value = '';
-    mapControls.style.display = 'block';
-    drawMap();
-    display.textContent = 'Editing new world map\n0. Return';
-    mode = 'editmap';
-  } else if (location.hash === '#dungeon') {
+  if (location.hash === '#dungeon') {
     createDungeonMap();
-    buildColorPalette();
+    buildPalette();
     mapName = '';
     mapNameInput.value = '';
     mapControls.style.display = 'block';
