@@ -9,7 +9,6 @@ window.onload = function () {
   let currentChar = null;
   let pendingClass = null;
 
-  const colorPalette = ['#592B18','#8A5A2B','#4A3C2B','#2E4A3C','#403A6C','#6C2E47','#5B2814','#888888'];
 
   const classes = [
     'Fighter',
@@ -636,31 +635,6 @@ window.onload = function () {
       } else {
         printMessage('Invalid spell.');
       }
-    } else if (phase === 'pickColor') {
-      const idx = parseInt(text) - 1;
-      if (colorPalette[idx]) {
-        currentChar.color = colorPalette[idx];
-        const poem =
-          "This miserable way\n" +
-          "is taken by the sorry souls of those\n" +
-          "who lived without disgrace and without praise.\n" +
-          "They now commingle with the coward angels,\n" +
-          "the company of those who were not rebels\n" +
-          "nor faithful to their God, but stood apart.\n" +
-          "The heavens, that their beauty not be lessened,\n" +
-          "have cast them out, nor will deep Hell receive them —\n" +
-          "even the wicked cannot glory in them.";
-        printMessage(poem);
-        printHTML(
-          `<span style="font-family:'Jacquard 12',cursive;">Give your blood to these lands?</span>`
-        );
-        printMessage(
-          '\t1. from my hands\n\t2. from my cheeks\n\t3. from my groin'
-        );
-        phase = 'bloodChoice';
-      } else {
-        printMessage('Invalid choice.');
-      }
     } else if (phase === 'bloodChoice') {
       if (text === '1') {
         currentChar.status = currentChar.status || [];
@@ -805,11 +779,23 @@ window.onload = function () {
   }
 
   function finalizeCharacter() {
-    printMessage('Choose a color for your chat name:');
-    colorPalette.forEach((c, i) =>
-      printHTML(`${i + 1}. <span style="color:${c}">${c}</span>`)
+    currentChar.color = '#fff';
+    const poem =
+      "This miserable way\n" +
+      "is taken by the sorry souls of those\n" +
+      "who lived without disgrace and without praise.\n" +
+      "They now commingle with the coward angels,\n" +
+      "the company of those who were not rebels\n" +
+      "nor faithful to their God, but stood apart.\n" +
+      "The heavens, that their beauty not be lessened,\n" +
+      "have cast them out, nor will deep Hell receive them —\n" +
+      "even the wicked cannot glory in them.";
+    printMessage(poem);
+    printHTML(
+      `<span style="font-family:'Jacquard 12',cursive;">Give your blood to these lands?</span>`
     );
-    phase = 'pickColor';
+    printMessage('\t1. from my hands\n\t2. from my cheeks\n\t3. from my groin');
+    phase = 'bloodChoice';
   }
 
   socket.on('characterLoaded', (charData) => {
