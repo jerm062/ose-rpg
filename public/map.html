@@ -19,12 +19,12 @@
     a { color: var(--link); }
     canvas { border: 1px solid var(--border); background: black; }
     #mapWrapper { display: flex; }
-    #legend { margin-right: 1rem; }
+    #infoDisplay { margin-right: 1rem; }
   </style>
 </head>
 <body>
   <div id="mapWrapper">
-    <pre id="legend"></pre>
+    <pre id="infoDisplay"></pre>
     <canvas id="mapCanvas" width="600" height="600"></canvas>
   </div>
   <p><a href="player.html">&#x2B05; Back</a></p>
@@ -40,7 +40,7 @@
     let mapHidden = [];
     let mapNotes = [];
     let tokens = {};
-    const legendEl = document.getElementById('legend');
+    const infoDisplay = document.getElementById('infoDisplay');
     const LEGEND = {
       V: 'Village',
       R: 'Ruins',
@@ -55,20 +55,29 @@
       '-': 'Trail',
       '~': 'River'
     };
-    function buildLegend() {
-      const entries = Object.entries(LEGEND).map(([k, v]) => `${k}: ${v}`);
+    const PATH_TYPES = {
+      '+': { name: 'Road', color: 'red' },
+      '-': { name: 'Trail', color: '#fff' },
+      '~': { name: 'River', color: '#666' }
+    };
+    function buildMapInfo() {
+      const lines = [];
+      Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
+      Object.entries(PATH_TYPES).forEach(([s, info]) => {
+        lines.push(`<span style="color:${info.color}">${s}</span>: ${info.name}`);
+      });
       let n = 0;
       for (let y = 0; y < mapNotes.length; y++) {
         for (let x = 0; x < mapNotes[y].length; x++) {
           if (mapNotes[y][x]) {
             n++;
-            entries.push(`${n}. ${mapNotes[y][x]}`);
+            lines.push(`${n}. ${mapNotes[y][x]}`);
           }
         }
       }
-      legendEl.textContent = entries.join('\n');
+      if (infoDisplay) infoDisplay.innerHTML = lines.join('<br>');
     }
-    buildLegend();
+    buildMapInfo();
 
     function noteNumber(x, y) {
       let n = 0;
@@ -143,7 +152,7 @@
         mapData = data.cells;
         mapHidden = data.hidden || mapData.map(r => r.map(() => true));
         mapNotes = data.notes || mapData.map(r => r.map(() => ''));
-        buildLegend();
+        buildMapInfo();
         render();
       });
       socket.on('playerPositions', (data) => {
