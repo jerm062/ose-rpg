@@ -159,18 +159,6 @@ function buildPalette() {
   });
 }
 
-function colorize(text) {
-  if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
-  if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
-  if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
-  return text
-    .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
-    .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-    .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
-    .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
-    .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
-    .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
-}
 
 function showMainMenu() {
   display.textContent =
@@ -726,11 +714,11 @@ socket.on('allCharacters', (chars) => {
 });
 
 socket.on('campaignLog', (log) => {
-  logDisplay.innerHTML = log.map(colorize).join('<br>');
+  logDisplay.innerHTML = log.map(colorizePlayerMessage).join('<br>');
 });
 
 socket.on('logUpdate', (entry) => {
-  logDisplay.innerHTML += '<br>' + colorize(entry);
+  logDisplay.innerHTML += '<br>' + colorizePlayerMessage(entry);
 });
 
 socket.on('mapData', (data) => {

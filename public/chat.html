@@ -47,6 +47,7 @@
   <p><a href="player.html">&#x2B05; Back</a></p>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="colorize.js"></script>
   <script>
     const socket = io();
     const logEl = document.getElementById('log');
@@ -54,37 +55,13 @@
     const input = document.getElementById('chatInput');
     const name = localStorage.getItem('characterName') || 'Anon';
 
-    function colorize(text) {
-      if (text.startsWith('[CHAR]')) return '<span class="gmchar">' + text + '</span>';
-      if (text.startsWith('[EVENT]')) return '<span class="gmevent">' + text + '</span>';
-      if (text.startsWith('[STORY]')) return '<span class="gmstory">' + text + '</span>';
-      const pm = text.match(/^\[Player:(#[0-9a-fA-F]{6})\]\s+([^:]+):\s*(.*)$/);
-      if (pm) {
-        const msg = pm[3]
-          .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
-          .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-          .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
-          .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
-          .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
-          .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
-        return '<span style="color:' + pm[1] + '">' + pm[2] + '</span>: ' + msg;
-      }
-      return text
-        .replace(/#([\w ]+)/g, '<span class="item">#$1</span>')
-        .replace(/\$(\d+)/g, '<span class="gold">$$$1</span>')
-        .replace(/@([\w ]+)/g, '<span class="char">@$1</span>')
-        .replace(/&([\w ]+)/g, '<span class="location">&$1</span>')
-        .replace(/!([\w ]+)/g, '<span class="spell">!$1</span>')
-        .replace(/%([\w ]+)/g, '<span class="monster">%$1</span>');
-    }
-
     socket.emit('getCampaignLog');
     socket.emit('registerPlayer', name);
     socket.on('campaignLog', (log) => {
-      logEl.innerHTML = log.map(colorize).join('<br>');
+      logEl.innerHTML = log.map(colorizePlayerMessage).join('<br>');
     });
     socket.on('logUpdate', (entry) => {
-      logEl.innerHTML += '<br>' + colorize(entry);
+      logEl.innerHTML += '<br>' + colorizePlayerMessage(entry);
       logEl.scrollTop = logEl.scrollHeight;
     });
     socket.on('readyList', (list) => {
