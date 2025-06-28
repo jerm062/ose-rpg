@@ -41,31 +41,8 @@
     let mapNotes = [];
     let tokens = {};
     const infoDisplay = document.getElementById('infoDisplay');
-    const LEGEND = {
-      V: 'Village',
-      R: 'Ruins',
-      F: 'Forest',
-      L: 'Lake',
-      M: 'Mount/Mine',
-      C: 'Caves',
-      T: 'Tower',
-      K: 'Keep',
-      S: 'Shrine',
-      '+': 'Road',
-      '-': 'Trail',
-      '~': 'River'
-    };
-    const PATH_TYPES = {
-      '+': { name: 'Road', color: 'red' },
-      '-': { name: 'Trail', color: '#fff' },
-      '~': { name: 'River', color: '#666' }
-    };
     function buildMapInfo() {
       const lines = [];
-      Object.entries(LEGEND).forEach(([k, v]) => lines.push(`${k}: ${v}`));
-      Object.entries(PATH_TYPES).forEach(([s, info]) => {
-        lines.push(`<span style="color:${info.color}">${s}</span>: ${info.name}`);
-      });
       let n = 0;
       for (let y = 0; y < mapNotes.length; y++) {
         for (let x = 0; x < mapNotes[y].length; x++) {
