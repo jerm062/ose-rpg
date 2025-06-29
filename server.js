@@ -86,19 +86,23 @@ function loadAll() {
     try {
       const raw = JSON.parse(fs.readFileSync(MAP_FILE));
       if (Array.isArray(raw)) {
-        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')) };
+        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')), letters: raw.map(r => r.map(() => null)) };
+        maps.default.letters = maps.default.letters.map(r => r.map(l => typeof l === 'string' ? { text: l, color: 'rgb(255,0,0)', font: '12px "Tiny5", monospace', blink: true } : l));
         sharedMap = 'default';
       } else {
         maps = {};
         Object.entries(raw.maps || {}).forEach(([n, d]) => {
           if (Array.isArray(d)) {
-            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')) };
+            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')), letters: d.map(r => r.map(() => null)) };
+            maps[n].letters = maps[n].letters.map(r => r.map(l => typeof l === 'string' ? { text: l, color: 'rgb(255,0,0)', font: '12px "Tiny5", monospace', blink: true } : l));
           } else {
             maps[n] = {
               cells: d.cells,
               hidden: d.hidden || d.cells.map(r => r.map(() => false)),
-              notes: d.notes || d.cells.map(r => r.map(() => ''))
+              notes: d.notes || d.cells.map(r => r.map(() => '')),
+              letters: d.letters || d.cells.map(r => r.map(() => null))
             };
+            maps[n].letters = maps[n].letters.map(r => r.map(l => typeof l === 'string' ? { text: l, color: 'rgb(255,0,0)', font: '12px "Tiny5", monospace', blink: true } : l));
           }
         });
         sharedMap = raw.sharedMap || Object.keys(maps)[0] || null;
@@ -617,6 +621,16 @@ io.on("connection", (socket) => {
       exportMaps();
     }
   });
+
+  socket.on("setMapLetter", ({ x, y, letter }) => {
+    const map = maps[currentMap];
+    if (map && map.letters[y] && typeof map.letters[y][x] !== "undefined") {
+      map.letters[y][x] = letter;
+      saveMaps();
+      exportMaps();
+    }
+  });
+
 
 
   socket.on("getLore", () => {
