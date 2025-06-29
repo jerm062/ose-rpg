@@ -6,6 +6,14 @@ const canvas = document.getElementById('hexMap');
 const palette = document.getElementById('tilePalette');
 const colorPaletteEl = document.getElementById('colorPalette');
 const mapControls = document.getElementById('mapControls');
+const makerMenu = document.getElementById('makerMenu');
+const menuSaveBtn = document.getElementById('menuSave');
+const menuNewBtn = document.getElementById('menuNew');
+const menuDeleteBtn = document.getElementById('menuDelete');
+const menuLoadBtn = document.getElementById('menuLoad');
+const menuGenBtn = document.getElementById('menuGen');
+const menuTilesBtn = document.getElementById('menuTiles');
+const menuTextBtn = document.getElementById('menuText');
 const mapNameInput = document.getElementById('mapName');
 const saveMapBtn = document.getElementById('saveMapBtn');
 const newMapBtn = document.getElementById('newMapBtn');
@@ -16,11 +24,14 @@ let mode = 'main';
 let mapData = [];
 let mapHidden = [];
 let mapNotes = [];
+let mapLetters = [];
 let lastTrail = null;
 let mapName = '';
 let selectedTile = '';
 let selectedColor = '#000000';
 let numberedMap = false;
+let textMode = false;
+let textLetter = '';
 
 let charNameTemp = '';
 
@@ -59,6 +70,7 @@ function createDungeonMap() {
   mapData = Array.from({ length: height }, () => Array(width).fill('d04'));
   mapHidden = Array.from({ length: height }, () => Array(width).fill(false));
   mapNotes = Array.from({ length: height }, () => Array(width).fill(''));
+  mapLetters = Array.from({ length: height }, () => Array(width).fill(''));
   const rooms = [];
   const roomCount = 8;
   for (let i = 0; i < roomCount; i++) {
@@ -112,6 +124,9 @@ function startEditingMap() {
   if (numberedMap) buildColorPalette();
   else buildPalette();
   mapControls.style.display = 'block';
+  if (makerMenu) makerMenu.style.display = 'block';
+  textMode = false;
+  document.querySelectorAll('#makerMenu button').forEach(b=>b.classList.remove('active'));
   drawMap();
   display.textContent = numberedMap
     ? 'Editing new map\n0. Return'
@@ -187,6 +202,7 @@ function showMainMenu() {
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   mode = 'main';
 }
 
@@ -205,6 +221,7 @@ function showCharMenu() {
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   mode = 'charMenu';
 }
 
@@ -220,6 +237,7 @@ function showMapMenu() {
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   mode = 'mapMenu';
 }
 
@@ -237,6 +255,7 @@ function showDataMenu() {
   canvas.style.display = 'none';
   palette.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   mode = 'dataMenu';
 }
 
@@ -250,6 +269,7 @@ function showGeneratorMenu() {
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   mode = 'genMenu';
 }
 
@@ -260,6 +280,7 @@ function showTableMenu(title) {
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
   mapControls.style.display = 'none';
+  if (makerMenu) makerMenu.style.display = 'none';
   charNameTemp = title; // reuse as temp store
   mode = 'genTable';
 }
@@ -312,6 +333,11 @@ function drawMap() {
       if (mapHidden[y] && mapHidden[y][x]) {
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
         ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
+      }
+      if (mapLetters[y] && mapLetters[y][x]) {
+        ctx.fillStyle = '#fff';
+        ctx.font = '14px "Tiny5", monospace';
+        ctx.fillText(mapLetters[y][x], x * cellSize + 8, y * cellSize + 22);
       }
       if (mapNotes[y] && mapNotes[y][x]) {
         ctx.fillStyle = 'yellow';
@@ -734,6 +760,7 @@ socket.on('mapData', (data) => {
   mapData = data.cells;
   mapHidden = data.hidden || mapData.map(r => r.map(() => true));
   mapNotes = data.notes || mapData.map(r => r.map(() => ''));
+  mapLetters = data.letters || mapData.map(r => r.map(() => ''));
   numberedMap = typeof mapData[0][0] === 'string' && mapData[0][0].startsWith('#') && mapData[0][0].length > 1;
   if (numberedMap) buildColorPalette(); else buildPalette();
   drawMap();
@@ -741,6 +768,7 @@ socket.on('mapData', (data) => {
     display.textContent = `Editing map: ${mapName}\n0. Return`;
     mapNameInput.value = mapName;
     mapControls.style.display = 'block';
+    if (makerMenu) makerMenu.style.display = 'block';
   }
 });
 
@@ -763,6 +791,12 @@ canvas.addEventListener('click', (ev) => {
   const x = Math.floor(ev.offsetX / cellSize);
   const y = Math.floor(ev.offsetY / cellSize);
   if (mapData[y] && typeof mapData[y][x] !== 'undefined') {
+    if (textMode) {
+      mapLetters[y][x] = textLetter;
+      socket.emit('setMapLetter', { x, y, text: textLetter });
+      drawMap();
+      return;
+    }
     if (ev.ctrlKey) {
       const note = prompt('Square description:', mapNotes[y][x] || '');
       if (note !== null) {
@@ -807,7 +841,7 @@ canvas.addEventListener('contextmenu', (ev) => {
 saveMapBtn.addEventListener('click', () => {
   const name = mapNameInput.value.trim() || mapName || 'unnamed';
   mapName = name;
-  socket.emit('saveMap', { name, data: { cells: mapData, hidden: mapHidden, notes: mapNotes } });
+  socket.emit('saveMap', { name, data: { cells: mapData, hidden: mapHidden, notes: mapNotes, letters: mapLetters } });
 });
 
 newMapBtn.addEventListener('click', () => {
@@ -815,6 +849,40 @@ newMapBtn.addEventListener('click', () => {
   startEditingMap();
   input.focus();
 });
+
+if (menuSaveBtn) menuSaveBtn.onclick = () => saveMapBtn.click();
+if (menuNewBtn) menuNewBtn.onclick = () => newMapBtn.click();
+if (menuGenBtn) menuGenBtn.onclick = () => { createDungeonMap(); startEditingMap(); };
+if (menuLoadBtn) menuLoadBtn.onclick = () => {
+  const name = prompt('Load map name:', mapName);
+  if (name) {
+    mapName = name;
+    mapNameInput.value = name;
+    socket.emit('loadMap', name);
+  }
+};
+if (menuDeleteBtn) menuDeleteBtn.onclick = () => {
+  const name = prompt('Delete map name:', mapName);
+  if (name) socket.emit('deleteMap', name);
+};
+if (menuTilesBtn) menuTilesBtn.onclick = async () => {
+  await loadTileset();
+  tiles = TILES;
+  buildPalette();
+};
+if (menuTextBtn) menuTextBtn.onclick = () => {
+  if (textMode) {
+    textMode = false;
+    menuTextBtn.classList.remove('active');
+  } else {
+    const l = prompt('Letter to paint:', textLetter || 'A');
+    if (l) {
+      textLetter = l[0];
+      textMode = true;
+      menuTextBtn.classList.add('active');
+    }
+  }
+};
 
 (async () => {
   await loadTables();
@@ -827,6 +895,7 @@ newMapBtn.addEventListener('click', () => {
     mapName = '';
     mapNameInput.value = '';
     mapControls.style.display = 'block';
+    if (makerMenu) makerMenu.style.display = 'block';
     drawMap();
     display.textContent = 'Editing new dungeon map\n0. Return';
     mode = 'editmap';
