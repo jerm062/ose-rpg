@@ -56,7 +56,7 @@ function createDungeonMap() {
   const width = 40;
   const height = 25;
   numberedMap = false;
-  mapData = Array.from({ length: height }, () => Array(width).fill('#'));
+  mapData = Array.from({ length: height }, () => Array(width).fill('d04'));
   mapHidden = Array.from({ length: height }, () => Array(width).fill(false));
   mapNotes = Array.from({ length: height }, () => Array(width).fill(''));
   const rooms = [];
@@ -79,7 +79,7 @@ function createDungeonMap() {
     }
     for (let yy = y; yy < y + h; yy++) {
       for (let xx = x; xx < x + w; xx++) {
-        mapData[yy][xx] = '.';
+        mapData[yy][xx] = 'd01';
       }
     }
     rooms.push({ x, y, w, h, cx: x + Math.floor(w / 2), cy: y + Math.floor(h / 2) });
@@ -90,16 +90,16 @@ function createDungeonMap() {
     let x = r1.cx;
     let y = r1.cy;
     while (x !== r2.cx) {
-      mapData[y][x] = '.';
+      mapData[y][x] = 'd01';
       x += Math.sign(r2.cx - x);
     }
     while (y !== r2.cy) {
-      mapData[y][x] = '.';
+      mapData[y][x] = 'd01';
       y += Math.sign(r2.cy - y);
     }
   }
-  tiles = TEXT_TILES;
-  selectedTile = TEXT_TILES[0];
+  tiles = TILES.length ? TILES : TEXT_TILES;
+  selectedTile = tiles[0];
 }
 
 function randomSettingSeed() {
@@ -141,12 +141,21 @@ function buildColorPalette() {
 function buildPalette() {
   palette.innerHTML = '';
   tiles.forEach((t) => {
-    const d = document.createElement('div');
-    d.className = 'tileBtn';
-    d.style.display = 'flex';
-    d.style.alignItems = 'center';
-    d.style.justifyContent = 'center';
-    d.textContent = t;
+    let d;
+    if (tileImages[t]) {
+      d = document.createElement('canvas');
+      d.width = TILE_SIZE;
+      d.height = TILE_SIZE;
+      d.className = 'tileBtn';
+      drawTile(d.getContext('2d'), t);
+    } else {
+      d = document.createElement('div');
+      d.className = 'tileBtn';
+      d.style.display = 'flex';
+      d.style.alignItems = 'center';
+      d.style.justifyContent = 'center';
+      d.textContent = t;
+    }
     if (t === selectedTile) d.classList.add('tileSel');
     d.onclick = () => {
       selectedTile = t;
@@ -809,8 +818,9 @@ newMapBtn.addEventListener('click', () => {
 
 (async () => {
   await loadTables();
-  tiles = TEXT_TILES;
-  selectedTile = TEXT_TILES[0];
+  await loadBitsyTiles();
+  tiles = TILES.length ? TILES : TEXT_TILES;
+  selectedTile = tiles[0];
   if (location.hash === '#dungeon') {
     createDungeonMap();
     buildPalette();
