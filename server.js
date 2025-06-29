@@ -86,18 +86,19 @@ function loadAll() {
     try {
       const raw = JSON.parse(fs.readFileSync(MAP_FILE));
       if (Array.isArray(raw)) {
-        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')) };
+        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')), letters: raw.map(r => r.map(() => '')) };
         sharedMap = 'default';
       } else {
         maps = {};
         Object.entries(raw.maps || {}).forEach(([n, d]) => {
           if (Array.isArray(d)) {
-            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')) };
+            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')), letters: d.map(r => r.map(() => '')) };
           } else {
             maps[n] = {
               cells: d.cells,
               hidden: d.hidden || d.cells.map(r => r.map(() => false)),
-              notes: d.notes || d.cells.map(r => r.map(() => ''))
+              notes: d.notes || d.cells.map(r => r.map(() => '')),
+              letters: d.letters || d.cells.map(r => r.map(() => ''))
             };
           }
         });
@@ -617,6 +618,16 @@ io.on("connection", (socket) => {
       exportMaps();
     }
   });
+
+  socket.on("setMapLetter", ({ x, y, text }) => {
+    const map = maps[currentMap];
+    if (map && map.letters[y] && typeof map.letters[y][x] !== "undefined") {
+      map.letters[y][x] = text;
+      saveMaps();
+      exportMaps();
+    }
+  });
+
 
 
   socket.on("getLore", () => {
