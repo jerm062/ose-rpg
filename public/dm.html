@@ -60,6 +60,16 @@
       width: 30px;
       height: 30px;
     }
+    #makerMenu {
+      position: fixed;
+      right: 210px;
+      top: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'Tiny5', monospace;
+    }
+    #makerMenu button.active { outline: 2px solid red; }
     .colorSel { outline: 2px solid red; }
     .tileSel { outline: 2px solid red; }
     .char { color: deepskyblue; }
@@ -98,10 +108,20 @@
     <button id="saveMapBtn">Save Map</button>
     <button id="newMapBtn">New Map</button>
   </div>
+  <div id="makerMenu" style="display:none">
+    <button id="menuSave">Save</button>
+    <button id="menuNew">New</button>
+    <button id="menuDelete">Delete</button>
+    <button id="menuLoad">Load</button>
+    <button id="menuGen">Generate New</button>
+    <button id="menuTiles">Full Tileset</button>
+    <button id="menuText">Add Text</button>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="colorize.js"></script>
   <script src="tiles.js"></script>
+  <script src="bitsy_tiles.js"></script>
   <script src="gm_menu.js"></script>
   <script>
     const picker = document.getElementById('fontPicker');
