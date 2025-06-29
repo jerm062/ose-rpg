@@ -86,18 +86,20 @@ function loadAll() {
     try {
       const raw = JSON.parse(fs.readFileSync(MAP_FILE));
       if (Array.isArray(raw)) {
-        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')) };
+        maps.default = { cells: raw, hidden: raw.map(r => r.map(() => false)), notes: raw.map(r => r.map(() => '')), letters: raw.map(r => r.map(() => '')), monsters: raw.map(r => r.map(() => false)) };
         sharedMap = 'default';
       } else {
         maps = {};
         Object.entries(raw.maps || {}).forEach(([n, d]) => {
           if (Array.isArray(d)) {
-            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')) };
+            maps[n] = { cells: d, hidden: d.map(r => r.map(() => false)), notes: d.map(r => r.map(() => '')), letters: d.map(r => r.map(() => '')), monsters: d.map(r => r.map(() => false)) };
           } else {
             maps[n] = {
               cells: d.cells,
               hidden: d.hidden || d.cells.map(r => r.map(() => false)),
-              notes: d.notes || d.cells.map(r => r.map(() => ''))
+              notes: d.notes || d.cells.map(r => r.map(() => '')),
+              letters: d.letters || d.cells.map(r => r.map(() => '')),
+              monsters: d.monsters || d.cells.map(r => r.map(() => false))
             };
           }
         });
@@ -613,6 +615,24 @@ io.on("connection", (socket) => {
     const map = maps[currentMap];
     if (map && map.notes[y] && typeof map.notes[y][x] !== "undefined") {
       map.notes[y][x] = text;
+      saveMaps();
+      exportMaps();
+    }
+  });
+
+  socket.on("setMapLetter", ({ x, y, text }) => {
+    const map = maps[currentMap];
+    if (map && map.letters[y] && typeof map.letters[y][x] !== "undefined") {
+      map.letters[y][x] = text;
+      saveMaps();
+      exportMaps();
+    }
+  });
+
+  socket.on("setMapMonster", ({ x, y, flag }) => {
+    const map = maps[currentMap];
+    if (map && map.monsters[y] && typeof map.monsters[y][x] !== "undefined") {
+      map.monsters[y][x] = flag;
       saveMaps();
       exportMaps();
     }
