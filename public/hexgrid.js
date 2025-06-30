@@ -6,6 +6,7 @@
   const hexH = Math.sqrt(3) * radius;
   const cols = Math.floor(canvas.width / (radius * 1.5));
   const rows = Math.floor(canvas.height / hexH);
+  const tiles = loadHexTiles ? loadHexTiles() : {};
 
   function hexCorner(cx, cy, i) {
     const angle = Math.PI / 3 * i;
@@ -25,12 +26,24 @@
   }
 
   ctx.strokeStyle = '#fff';
+  ctx.font = '10px monospace';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
 
+  const tileNames = Object.keys(tiles);
+  let idx = 1;
   for (let q = 0; q < cols; q++) {
     for (let r = 0; r < rows; r++) {
       const cx = radius * 1.5 * q + radius;
       const cy = hexH * (r + 0.5 * (q % 2)) + radius;
+      const name = tileNames[(idx - 1) % tileNames.length];
+      const img = tiles[name];
+      if (img) {
+        ctx.drawImage(img, cx - radius + 2, cy - radius + 2, radius * 2 - 4, radius * 2 - 4);
+      }
       drawHex(cx, cy);
+      ctx.fillText(idx, cx, cy);
+      idx++;
     }
   }
 })();
