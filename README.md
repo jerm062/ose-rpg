@@ -15,6 +15,7 @@ Files are organised into persistent folders:
 - `data/maps` - all map data
 - `data/chat` - the running chat log
 - `data/lore` - lore entries added during play
+- `data/maps/caravan_hex.json` - the hex travel map used on the caravan page
 
 These folders make it safe to update the code without losing your campaign files.
 

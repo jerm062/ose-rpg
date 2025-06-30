@@ -10,6 +10,9 @@ const io = new Server(server);
 
 const PORT = process.env.PORT || 3000;
 
+// Allow JSON bodies for simple API endpoints
+app.use(express.json());
+
 // Persist user generated content under the data directory
 // The location can be overridden by setting the OSE_RPG_DATA_DIR
 // environment variable, allowing saves on a separate disk
@@ -33,6 +36,7 @@ const CHAR_FILE = path.join(CHAR_DIR, 'player_data.json');
 const LOG_FILE = path.join(CHAT_DIR, 'campaign_log.txt');
 const MAP_FILE = path.join(MAP_DIR, 'map_data.json');
 const LORE_FILE = path.join(LORE_DIR, 'lore.json');
+const CARAVAN_HEX_FILE = path.join(MAP_DIR, 'caravan_hex.json');
 
 let campaignLog = [];
 let maps = {};
@@ -40,6 +44,7 @@ let sharedMap = null;
 let currentMap = null;
 
 let savedCharacters = {};
+let caravanHex = [];
 let lore = {
   characters: [],
   deaths: [],
@@ -63,6 +68,8 @@ if (!fs.existsSync(MAP_FILE))
   fs.writeFileSync(MAP_FILE, JSON.stringify({ maps: {}, sharedMap: null }, null, 2));
 if (!fs.existsSync(LORE_FILE))
   fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
+if (!fs.existsSync(CARAVAN_HEX_FILE))
+  fs.writeFileSync(CARAVAN_HEX_FILE, '[]');
 // Track which player sockets map to which names and ready status
 const playerNames = {};
 const readyState = {};
@@ -108,6 +115,15 @@ function loadAll() {
       console.error('Error reading map file:', err);
     }
   }
+
+  // Load caravan hex map
+  if (fs.existsSync(CARAVAN_HEX_FILE)) {
+    try {
+      caravanHex = JSON.parse(fs.readFileSync(CARAVAN_HEX_FILE));
+    } catch (err) {
+      console.error('Error reading caravan hex file:', err);
+    }
+  }
   currentMap = sharedMap;
 
   // Load saved characters from file
@@ -149,6 +165,10 @@ function saveMaps() {
   );
 }
 
+function saveCaravanHex() {
+  fs.writeFile(CARAVAN_HEX_FILE, JSON.stringify(caravanHex, null, 2), () => {});
+}
+
 function saveLore() {
   fs.writeFile(LORE_FILE, JSON.stringify(lore, null, 2), () => {});
 }
@@ -158,6 +178,7 @@ function saveAll() {
   fs.writeFileSync(MAP_FILE, JSON.stringify({ maps, sharedMap }, null, 2));
   fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
   fs.writeFileSync(LORE_FILE, JSON.stringify(lore, null, 2));
+  fs.writeFileSync(CARAVAN_HEX_FILE, JSON.stringify(caravanHex, null, 2));
 }
 
 function exportCharacters() {
@@ -206,12 +227,28 @@ function exportAll() {
   exportMaps();
   exportLore();
   fs.writeFileSync(LOG_FILE, campaignLog.join("\n"));
+  fs.writeFileSync(CARAVAN_HEX_FILE, JSON.stringify(caravanHex, null, 2));
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/organized_tiles', express.static(path.join(__dirname, 'organized_tiles')));
 app.get('/organized_tileset.json', (req, res) => {
   res.sendFile(path.join(__dirname, 'organized_tileset.json'));
+});
+
+// Simple API to load and save the caravan hex map
+app.get('/api/hexmap', (req, res) => {
+  res.json({ map: caravanHex });
+});
+
+app.post('/api/hexmap', (req, res) => {
+  if (Array.isArray(req.body.map)) {
+    caravanHex = req.body.map;
+    saveCaravanHex();
+    res.json({ status: 'ok' });
+  } else {
+    res.status(400).json({ error: 'Invalid map' });
+  }
 });
 
 
