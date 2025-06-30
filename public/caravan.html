@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Caravan Map</title>
+  <link rel="stylesheet" href="theme-dark.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Tiny5&display=swap">
+  <style>
+    body { font-family: 'Tiny5', monospace; padding: 1rem; margin: 0 auto; max-width: 100%; background: var(--bg); color: var(--fg); }
+    a { color: var(--link); }
+    canvas { border: 1px solid var(--border); background: black; display:block; margin-top:1rem; }
+  </style>
+</head>
+<body>
+  <h2>Caravan Travel</h2>
+  <canvas id="hexCanvas" width="600" height="400"></canvas>
+  <p><a id="backLink" href="player.html">&#x2B05; Back</a></p>
+  <script src="hexgrid.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    if (params.get('gm') === '1') {
+      document.getElementById('backLink').href = 'dm.html';
+    }
+  </script>
+</body>
+</html>
