@@ -9,18 +9,24 @@
     body { font-family: 'Tiny5', monospace; padding: 1rem; margin: 0 auto; max-width: 100%; background: var(--bg); color: var(--fg); }
     a { color: var(--link); }
     canvas { border: 1px solid var(--border); background: black; display:block; margin-top:1rem; }
+    #hexToolbar { display:none; flex-wrap: wrap; gap: 4px; margin-top: 0.5rem; }
+    .tileBtn { border: 1px solid var(--border); cursor: pointer; width: 30px; height: 30px; display:flex; align-items: center; justify-content: center; }
+    .tileSel { outline: 2px solid red; }
   </style>
 </head>
 <body>
   <h2>Caravan Travel</h2>
   <canvas id="hexCanvas" width="600" height="400"></canvas>
+  <div id="hexToolbar"></div>
   <p><a id="backLink" href="player.html">&#x2B05; Back</a></p>
-  <script src="hexgrid.js"></script>
+  <script src="hex_tiles.js"></script>
   <script>
     const params = new URLSearchParams(location.search);
-    if (params.get('gm') === '1') {
+    window.gmMode = params.get('gm') === '1';
+    if (gmMode) {
       document.getElementById('backLink').href = 'dm.html';
     }
   </script>
+  <script src="hexgrid.js"></script>
 </body>
 </html>
