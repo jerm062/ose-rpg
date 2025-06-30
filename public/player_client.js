@@ -352,6 +352,7 @@ window.onload = function () {
         '8. Save Character\n' +
         '9. Lore Book\n' +
         '10. Export Character\n' +
+        '11. Caravan Map\n' +
         '(Selecting an option opens a new page)'
     );
     careerButton.style.display = 'none';
@@ -721,6 +722,9 @@ window.onload = function () {
         case '10':
           socket.emit('exportCharacter', currentChar.name);
           printMessage('Character exported.');
+          break;
+        case '11':
+          window.location.href = 'caravan.html';
           break;
         default:
           printMessage('Invalid choice.');

@@ -197,7 +197,8 @@ function showMainMenu() {
     '8. Help\n' +
     '9. Add Lore\n' +
     '10. Edit Data\n' +
-    '11. Generators';
+    '11. Generators\n' +
+    '12. Caravan Map';
   canvas.style.display = 'none';
   palette.style.display = 'none';
   colorPaletteEl.style.display = 'none';
@@ -435,6 +436,10 @@ function handleInput(text) {
         break;
       case '11':
         showGeneratorMenu();
+        break;
+      case '12':
+        window.open('caravan.html', '_blank');
+        showMainMenu();
         break;
       default:
         showMainMenu();
